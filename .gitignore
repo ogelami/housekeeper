@@ -1,0 +1,6 @@
+config.json
+*.exe
+main
+.DS_Store
+src
+bin
