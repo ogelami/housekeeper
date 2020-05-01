@@ -5,14 +5,18 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 
-    <!-- Bootstrap CSS -->
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+    <link rel="stylesheet" href="/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+    <link rel="stylesheet" href="/css/materialdesignicons.min.css" crossorigin="anonymous">
 
     <style>
       body
       {
         background: url('q.png') repeat #000;
         padding: 50px;
+      }
+      main, .container
+      {
+        background-color: #fff;
       }
     </style>
 
@@ -37,10 +41,93 @@
       -Window     (Turn on (room).window)
       -Turn On    (https://www.youtube.com/watch?v=I2jLdYovW-c)
     -->
-    <div class="container">
-      <div class="col-4">
+
+    <div class="container rounded">
+      <div class="row py-3">
+        <div class="col-4">
+          <div class="list-group" id="list-tab" role="tablist">
+            <a class="list-group-item list-group-item-action active" id="list-home-list" data-toggle="list" href="#list-home" role="tab" aria-controls="home">
+              <i class="mdi mdi-home-circle-outline" aria-hidden="true"></i>
+              Home
+            </a>
+            <a class="list-group-item list-group-item-action" id="list-profile-list" data-toggle="list" href="#list-profile" role="tab" aria-controls="profile">
+              <i class="mdi mdi-bed-king-outline" aria-hidden="true"></i>
+              Bedrom
+            </a>
+            <a class="list-group-item list-group-item-action" id="list-messages-list" data-toggle="list" href="#list-messages" role="tab" aria-controls="messages">
+              <i class="mdi mdi-monitor-dashboard" aria-hidden="true"></i>
+              Livingroom
+            </a>
+            <a class="list-group-item list-group-item-action" id="list-settings-list" data-toggle="list" href="#list-settings" role="tab" aria-controls="settings">
+              <i class="mdi mdi-food-fork-drink" aria-hidden="true"></i>
+              Kitchen
+            </a>
+          </div>
+        </div>
+        <div class="col-8">
+          <div class="row">
+            <div class="tab-content" id="nav-tabContent">
+              <div class="tab-pane fade show active" id="list-home" role="tabpanel" aria-labelledby="list-home-list">
+                asdasd
+              </div>
+              <div class="tab-pane fade" id="list-profile" role="tabpanel" aria-labelledby="list-profile-list">
+                <div class="btn-group btn-group-toggle" data-toggle="buttons">
+                  <label class="btn btn-secondary active">
+                    <input type="checkbox" name="options" id="option1" checked> Window
+                  </label>
+                </div>
+                <div class="btn-group btn-group-toggle" data-toggle="buttons">
+                  <div class="input-group-prepend">
+                    <span class="input-group-text" id="basic-addon3">Bedside table</span>
+                  </div>
+                  <label class="btn btn-secondary">
+                    <input type="checkbox" name="options" id="option2"> Left 
+                  </label>
+                  <label class="btn btn-secondary">
+                    <input type="checkbox" name="options" id="option3"> Right
+                  </label>
+                </div>
+              </div>
+              <div class="tab-pane fade" id="list-messages" role="tabpanel" aria-labelledby="list-messages-list">
+
+              </div>
+              <div class="tab-pane fade" id="list-settings" role="tabpanel" aria-labelledby="list-settings-list">
+
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+
+<!--    <div class="container-fluid">
+      <div class="row">
+        <main class="col-md-9 col-xl-8 py-md-3 pl-md-5 bd-content" role="main">
+          <div class="col-4">
+            <div class="list-group" id="list-tab" role="tablist">
+              <a class="list-group-item list-group-item-action active" id="list-home-list" data-toggle="list" href="#list-home" role="tab" aria-controls="home">Home</a>
+              <a class="list-group-item list-group-item-action" id="list-profile-list" data-toggle="list" href="#list-profile" role="tab" aria-controls="profile">Bedrom</a>
+              <a class="list-group-item list-group-item-action" id="list-messages-list" data-toggle="list" href="#list-messages" role="tab" aria-controls="messages">Livingroom</a>
+              <a class="list-group-item list-group-item-action" id="list-settings-list" data-toggle="list" href="#list-settings" role="tab" aria-controls="settings">Kitchen</a>
+            </div>
+          </div>
+          <div class="col-8">
+            <div class="tab-content" id="nav-tabContent">
+              <div class="tab-pane fade show active" id="list-home" role="tabpanel" aria-labelledby="list-home-list">aasd</div>
+              <div class="tab-pane fade" id="list-profile" role="tabpanel" aria-labelledby="list-profile-list">...</div>
+              <div class="tab-pane fade" id="list-messages" role="tabpanel" aria-labelledby="list-messages-list">...</div>
+              <div class="tab-pane fade" id="list-settings" role="tabpanel" aria-labelledby="list-settings-list">...</div>
+            </div>
+          </div>
+        </div>
+      </main>
+
+
+     <div class="col-4">
           <div class="row">
           <div class="col">
+            <button type="button" class="btn btn-primary waves-effect waves-light">Primary</button>
             <a href="google.com"><h5>Kitchen</h5></a>
           </div>
           </div>
@@ -133,11 +220,11 @@
         </div>
       </div>
     </div>
+    -->
 
-    <!-- Optional JavaScript -->
-    <!-- jQuery first, then Popper.js, then Bootstrap JS -->
-    <script src="https://code.jquery.com/jquery-3.4.1.slim.min.js" integrity="sha384-J6qa4849blE2+poT4WnyKhv5vZF5SrPo0iEjwBvKU7imGFAV0wwj1yYfoRSJoZ+n" crossorigin="anonymous"></script>
-    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js" integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6" crossorigin="anonymous"></script>
+    <script src="/js/jquery-3.4.1.slim.min.js" integrity="sha384-J6qa4849blE2+poT4WnyKhv5vZF5SrPo0iEjwBvKU7imGFAV0wwj1yYfoRSJoZ+n" crossorigin="anonymous"></script>
+    <script src="/js/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
+
+    <script src="/js/bootstrap.min.js" integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6" crossorigin="anonymous"></script>
   </body>
 </html>
