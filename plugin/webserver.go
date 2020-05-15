@@ -1,15 +1,17 @@
 package main
 
 import (
-//	"encoding/json"
+	"encoding/json"
 	"net/http"
-	"net"
+	//"net"
 	"errors"
-	"io/ioutil"
-	"strings"
-	"os"
+	//"io/ioutil"
+//	"strings"
+	//"os"
 //	"crypto/tls"
 	"../housekeeper"
+	MQTT "github.com/eclipse/paho.mqtt.golang"
+	"github.com/gorilla/websocket"
 )
 
 type s_configuration struct {
@@ -20,29 +22,42 @@ type s_configuration struct {
 		WebPath string `json:"web_path"`
 		Certificate string `json:"certificate"`
 		CertificateKey string `json:"certificate_key"`
-		LogRequests bool `json:"log_requests"`
+//		LogRequests bool `json:"log_requests"`
 	} `json:"webserver"`
+}
+
+type s_websocketResponse struct {
+	Topic string `json:"topic"`
+	Message string `json:"message"`
 }
 
 var configuration s_configuration
 
-func PongServer(w http.ResponseWriter, req *http.Request) {
-	ip, port, err := net.SplitHostPort(req.RemoteAddr)
+var upgrader = websocket.Upgrader{}
+
+/*func PongServer(w http.ResponseWriter, req *http.Request) {
+//	ip, port, err := net.SplitHostPort(req.RemoteAddr)
+	_, _, err := net.SplitHostPort(req.RemoteAddr)
+
+//	housekeeper.SharedInformation.Logger.Error(req.URL.Path)
+//	housekeeper.SharedInformation.Logger.Error(configuration.Webserver.WebPath)
 
 	if err != nil {
 		housekeeper.SharedInformation.Logger.Error(err)
 	}
 
-	if configuration.Webserver.LogRequests {
-		housekeeper.SharedInformation.Logger.Infof("%s:%s made an ip request", ip, port)
-	}
+//	if configuration.Webserver.LogRequests {
+//		housekeeper.SharedInformation.Logger.Infof("%s:%s made an ip request", ip, port)
+//	}
 
-	file := configuration.Webserver.WebPath + "/" + req.URL.Path[strings.LastIndex(req.URL.Path, "/") + 1:]
+//	file := configuration.Webserver.WebPath + "/" + req.URL.Path[strings.LastIndex(req.URL.Path, "/") + 1:]
+	file := configuration.Webserver.WebPath + req.URL.Path
 
 	housekeeper.SharedInformation.Logger.Infof("> %s", file)
 
-	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	w.Header().Add("Strict-Transport-Security", "max-age=63072000; includeSubDomains")
+//	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+//	w.Header().Add("Strict-Transport-Security", "max-age=63072000; includeSubDomains")
+	housekeeper.SharedInformation.Logger.Error(w.Header())
 
 	_, err = os.Stat(file)
 
@@ -54,7 +69,7 @@ func PongServer(w http.ResponseWriter, req *http.Request) {
 		body, _ := ioutil.ReadFile(file)
 		w.Write([]byte(body))
 	}
-}
+}*/
 
 func validateConfiguration() error {
 	if configuration.Webserver.Protocol == "" {
@@ -76,6 +91,82 @@ func validateConfiguration() error {
 	return nil
 }
 
+func tryRead(conn *websocket.Conn) {
+	clientResponse := s_websocketResponse{}
+
+	for {
+		_, p, err := conn.ReadMessage()
+
+		if err != nil {
+			housekeeper.SharedInformation.Logger.Error(err)
+			break
+		}
+
+		json.Unmarshal(p, &clientResponse)
+
+		housekeeper.SharedInformation.Logger.Info(clientResponse)
+
+		housekeeper.SharedInformation.MQTTClient.Publish(clientResponse.Topic, 0, false, clientResponse.Message)
+		housekeeper.SharedInformation.Logger.Info(p)
+	}
+}
+
+func echo(w http.ResponseWriter, r *http.Request) {
+	c, err := upgrader.Upgrade(w, r, nil)
+
+	if err != nil {
+		housekeeper.SharedInformation.Logger.Error(err)
+		return
+	}
+
+	housekeeper.SharedInformation.Logger.Critical("blip")
+
+	go tryRead(c)
+
+	housekeeper.SharedInformation.MQTTClient.Subscribe("#", 0, func(client MQTT.Client, msg MQTT.Message) {
+//		housekeeper.SharedInformation.Logger.Criticalf("webbie says * [%s] %s\n", msg.Topic(), string(msg.Payload()))
+
+//			serverResponse.Topic = string(msg.Topic())
+//		serverResponse.Message = string(msg.Payload())
+		serverResponse := &s_websocketResponse{ Topic: string(msg.Topic()), Message: string(msg.Payload())}
+
+		packedResponse, err := json.Marshal(serverResponse)
+
+		if err != nil {
+			housekeeper.SharedInformation.Logger.Error(err)
+		}
+
+		err = c.WriteMessage(websocket.TextMessage, packedResponse)
+
+		if err != nil {
+			housekeeper.SharedInformation.Logger.Critical("write:", err)
+		}
+	})
+/*	if err != nil {
+		housekeeper.SharedInformation.Logger.Critical("upgrade:", err)
+		return
+	}
+
+	defer c.Close()
+
+	for {
+		mt, message, err := c.ReadMessage()
+
+		if err != nil {
+			housekeeper.SharedInformation.Logger.Critical("read:", err)
+			break
+		}
+
+		housekeeper.SharedInformation.Logger.Criticalf("recv: %s", message)
+		err = c.WriteMessage(mt, message)
+
+		if err != nil {
+			housekeeper.SharedInformation.Logger.Critical("write:", err)
+			break
+		}
+	}*/
+}
+
 func Startup() error {
 	err := housekeeper.ParseConfig(&configuration)
 
@@ -90,7 +181,10 @@ func Startup() error {
 	}
 
 	mux := http.NewServeMux()
-	mux.HandleFunc("/", PongServer)
+	fs := http.FileServer(http.Dir("webserver/"))
+
+	mux.Handle("/", fs)
+	mux.HandleFunc("/echo", echo)
 
 /*	cfg := &tls.Config{
 		MinVersion: tls.VersionTLS12,

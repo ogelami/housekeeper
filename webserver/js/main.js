@@ -5,6 +5,28 @@ function refreshWeather(chunk)
   document.dispatchEvent(new CustomEvent('updateWeather', {'detail' : chunk}));
 }
 
+class SimpleSwitch
+{
+  constructor(selector, commandTopic, telemetryTopic) {
+    this.element = document.querySelector(selector);
+    this.commandTopic = commandTopic;
+    this.telemetryTopic = telemetryTopic;
+
+    this.element.addEventListener('click', () => {
+      document.dispatchEvent(new CustomEvent('switchPress', {
+        'detail' : {
+          'status' : this.element.classList.contains('active'),
+          'commandTopic' : commandTopic
+        }
+      }));
+    });
+
+    console.log('constructed');
+
+//    setInterval(() => this.element.classList.toggle("active"), 500);
+  }
+}
+
 (() => {
   let realTimeClock = document.querySelector('.real-time-clock');
 
@@ -15,7 +37,20 @@ function refreshWeather(chunk)
   let buttonRefreshWeather = document.querySelector('button#refresh-weather');
 
   let overlay = document.querySelector('div#overlay');
+  let overlayOpacitySlider = document.querySelector('input#overlay-opacity-slider');
   let overlayTimeout;
+
+  let consoleLog = document.querySelector('textarea#console-log');
+  let consoleLogWebSocket = new WebSocket("ws://" + document.location.host + "/echo");
+
+  let switchList = [
+    new SimpleSwitch('#switch-computer-lamp', 'livingroom_light_computer/cmnd/POWER', 'livingroom_light_computer/stat/POWER')
+  ];
+
+  function publishMQTT(topic, message)
+  {
+    consoleLogWebSocket.send(JSON.stringify({'topic' : topic, 'message' : message}));
+  }
 
   function bumpOverlayTimeout()
   {
@@ -34,25 +69,48 @@ function refreshWeather(chunk)
     document.body.appendChild(s);
   });
 
-/*  overlay.addEventListener('click', () => {
-    overlay.style.display = 'none';
-
-    
-  });*/
+  overlayOpacitySlider.addEventListener('change', () => {
+    overlay.style.opacity = overlayOpacitySlider.value * 0.01;
+  });
 
   //interaction timeout push
-  document.addEventListener('click', () => bumpOverlayTimeout());
+  document.addEventListener('touchstart', bumpOverlayTimeout);
+  document.addEventListener('mousedown', bumpOverlayTimeout);
 
   document.addEventListener('updateWeather', (weather) => {
     weatherChunk = weather.detail;
 
     weatherIcon.src = `/img/openweathermap/${weatherChunk.list[0].weather[0].icon}@2x.png`;
     weatherDescription.innerText = `${weatherChunk.list[0].weather[0].description}`;
-    weatherTemperature.innerText = `${weatherChunk.list[0].main.temp} °C`
+    weatherTemperature.innerText = `${weatherChunk.list[0].main.temp} °C`;
+  });
+
+  document.addEventListener('switchPress', (state) => publishMQTT(state.detail.commandTopic, state.detail.status ? 'ON' : 'OFF'));
+
+  consoleLogWebSocket.addEventListener('message', (message) => {
+    let messageData = JSON.parse(message.data);
+
+//    consoleLog.value = message.data + "\n" + consoleLog.value;
+
+    for (const switchie of switchList)
+    {
+//      console.log('VS', switchie, switchie.telemetryTopic, messageData.topic)
+
+      if (switchie.telemetryTopic == messageData.topic) {
+        console.log('!!!!!!!aewew', messageData.message);
+      }
+//      else
+ //       console.log(messageData.topic);
+    }
   });
 
   setInterval(() =>
   {
     realTimeClock.innerText = new Date().toLocaleString("sv-SE", {timeZone: "Europe/Stockholm"});
   }, 500);
+
+  // exposed for debugging
+  window.q = consoleLogWebSocket;
+  window.pub = publishMQTT;
+
 })();
