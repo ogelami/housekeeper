@@ -6,7 +6,7 @@ GOBIN := $(GOPATH)/bin
 SYSCONFDIR := $(PREFIX)/etc
 CONFIG_PATH := $(SYSCONFDIR)/$(CONFIG_FILE)
 SBINDIR := $(PREFIX)/usr/sbin
-LIBDIR := $(PREFIX)/usr/lib/cfdnsu
+LIBDIR := $(PREFIX)/usr/lib/housekeeper
 PLUGINS := $(wildcard plugin/*.go)
 
 .PHONY: all build build-plugins dep install clean

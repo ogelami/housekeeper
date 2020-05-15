@@ -38,11 +38,6 @@ openssl req -new -x509 -sha256 -key bin/server.key -out bin/server.crt -days 365
 
 */
 
-type SharedInformation struct {
-  Logger *logging.Logger
-  Configuration []byte
-}
-
 var (
 	CONFIGURATION_PATH string
 	PLUGIN_PATH string
@@ -112,7 +107,7 @@ func loadPlugins() {
 			hotPlug, err := plugin.Open(fullPath)
 
 			if err != nil {
-				log.Critical(err)
+				log.Critical(fullPath, err)
 				continue
 			}
 
@@ -329,7 +324,6 @@ func main() {
 	}
 
 //	log.Criticalf("%s", configuration)
-
 //	log.Criticalf("%s", configuration.MQTT.Broker)
 
 	mqttOptions := MQTT.NewClientOptions()
@@ -342,12 +336,17 @@ func main() {
 	log.Criticalf("%s", configuration.MQTT.Username)
 	log.Criticalf("%s", configuration.MQTT.Password)*/
 
-
 	client := MQTT.NewClient(mqttOptions)
 
 	if token := client.Connect(); token.Wait() && token.Error() != nil {
 		log.Fatal(token.Error())
 	}
+
+	housekeeper.SharedInformation.MQTTClient = client
+
+/*	client.Subscribe("#", 0, func(client MQTT.Client, msg MQTT.Message) {
+		log.Criticalf("* [%s] %s\n", msg.Topic(), string(msg.Payload()))
+	})*/
 
 	run()
 
