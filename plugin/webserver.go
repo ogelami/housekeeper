@@ -105,8 +105,9 @@ func tryRead(conn *websocket.Conn) {
 
 		housekeeper.SharedInformation.Logger.Info(clientResponse)
 
-		housekeeper.SharedInformation.MQTTClient.Publish(clientResponse.Topic, 0, false, clientResponse.Message)
-		housekeeper.SharedInformation.Logger.Info(p)
+//		housekeeper.SharedInformation.Logger.Info(p)
+
+		housekeeper.SharedInformation.MQTTClient.Publish(clientResponse.Topic, 0, true, clientResponse.Message)
 	}
 }
 
@@ -181,7 +182,7 @@ func Startup() error {
 
 	mux := http.NewServeMux()
 	fs := http.FileServer(http.Dir(configuration.Webserver.WebPath))
-	
+
 	mux.Handle("/", fs)
 	mux.HandleFunc("/echo", echo)
 
