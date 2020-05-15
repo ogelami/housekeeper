@@ -18,7 +18,6 @@ type s_configuration struct {
 	Webserver struct {
 		Protocol string `json:"protocol"`
 		Listen string `json:"listen"`
-		Index string `json:"index"`
 		WebPath string `json:"web_path"`
 		Certificate string `json:"certificate"`
 		CertificateKey string `json:"certificate_key"`
@@ -181,8 +180,8 @@ func Startup() error {
 	}
 
 	mux := http.NewServeMux()
-	fs := http.FileServer(http.Dir("webserver/"))
-
+	fs := http.FileServer(http.Dir(configuration.Webserver.WebPath))
+	
 	mux.Handle("/", fs)
 	mux.HandleFunc("/echo", echo)
 
