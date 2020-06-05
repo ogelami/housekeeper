@@ -1,12 +1,12 @@
 BINARY := housekeeper
-CONFIG_FILE := housekeeper.conf
+CONFIG_FILE ?= housekeeper.conf
 
 GOPATH := $(PWD)
 GOBIN := $(GOPATH)/bin
-SYSCONFDIR := $(PREFIX)/etc
+SYSCONFDIR ?= $(PREFIX)/etc
 CONFIG_PATH := $(SYSCONFDIR)/$(CONFIG_FILE)
 SBINDIR := $(PREFIX)/usr/sbin
-LIBDIR := $(PREFIX)/usr/lib/housekeeper
+LIBDIR ?= $(PREFIX)/usr/lib/housekeeper
 PLUGINS := $(wildcard plugin/*.go)
 
 .PHONY: all build build-plugins dep install clean
