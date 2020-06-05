@@ -304,8 +304,8 @@ func main() {
 	rand.Seed(time.Now().Unix())
 	logging.SetFormatter(logging.MustStringFormatter(`%{color} %{shortfunc} ▶ %{level:.4s} %{color:reset} %{message}`))
 
-	var environmentVariableConfigPath = os.Getenv("CFDNSU_CONFIGURATION_PATH")
-	var environmentVariablePluginPath = os.Getenv("CFDNSU_PLUGIN_PATH")
+	var environmentVariableConfigPath = os.Getenv("HOUSEKEEPER_CONFIGURATION_PATH")
+	var environmentVariablePluginPath = os.Getenv("HOUSEKEEPER_PLUGIN_PATH")
 
 	if len(environmentVariableConfigPath) > 0 {
 		CONFIGURATION_PATH = environmentVariableConfigPath

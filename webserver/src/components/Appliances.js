@@ -5,7 +5,7 @@ class Applicances extends React.Component {
     return this.props.configuration.map((_switch, iterator) => {
       const SwitchType = _switch.type;
 
-      return <SwitchType key={iterator} room={_switch.room} location={_switch.location} />
+      return <SwitchType f={this.props.f} key={iterator} command={_switch.command} status={_switch.status} room={_switch.room} location={_switch.location} />
     });
   }
 }
