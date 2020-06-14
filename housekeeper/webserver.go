@@ -193,7 +193,7 @@ func StartWebserver() error {
 		return err
 	}
 
-	SharedInformation.Logger.Info("Serving webserver!")
+	SharedInformation.Logger.Info("Serving")
 	
 	err = srv.ListenAndServe()
 //	err = srv.ListenAndServeTLS(housekeeper.Configuration.Webserver.Certificate, configuration.Webserver.CertificateKey)
