@@ -15,16 +15,14 @@ class BlitzWolfSHP extends React.Component {
   }
 
   changeState = () => {
-    console.log(123);
+    let newState = !this.state.on;
 
-    this.setState({ on: !this.state.on });
-
-    this.props.f(this.state.on);
+    this.setState({ on: newState });
+    this.props.f(this.props.command, newState ? '1' : '0');
   }
 
   render() {
     return (
-/*      <div onClick={() => this.setState({on: !this.state.on})}>*/
       <div onClick={this.changeState}>
         <span className={'mdi ' + (this.state.on ? this.config.icon[0] : this.config.icon[1])}/>
         {this.props.room}, {this.props.location}

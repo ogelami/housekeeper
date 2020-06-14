@@ -6,10 +6,16 @@ import Configuration from './Configuration';
 import './App.css';
 
 class App extends React.Component {
-  webSocket = new WebSocket('ws://' + document.location.host + '/echo');
+  webSocket = new WebSocket('ws://' + (Configuration.webSocketServer || document.location.host) + '/echo');
 
-  func = state => {
-    this.webSocket.send('oh, hi mark' + (state ? '1':'0'));
+  broadcastMessage = (topic, message) => {
+    if(this.webSocket.readyState === WebSocket.OPEN) {
+      this.webSocket.send(JSON.stringify({topic: topic, message: message}));
+    }
+    else
+    {
+      console.log('Could not send readyState not open currently set to ' + this.webSocket.readyState);
+    }
   }
 
   componentDidMount() {
@@ -33,7 +39,7 @@ class App extends React.Component {
       <div>
         <Overlay/>
         <main>
-          <Appliances f={this.func} configuration={Configuration}/>
+          <Appliances f={this.broadcastMessage} messageReceived={this.webSocket.onmessage} configuration={Configuration.switchList}/>
         </main>
       </div>
     );

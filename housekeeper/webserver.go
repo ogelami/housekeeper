@@ -18,7 +18,11 @@ type s_websocketResponse struct {
 	Message string `json:"message"`
 }
 
-var upgrader = websocket.Upgrader{}
+var upgrader = websocket.Upgrader {
+	CheckOrigin: func(r *http.Request) bool {
+		return true
+	},
+}
 
 /*func PongServer(w http.ResponseWriter, req *http.Request) {
 //	ip, port, err := net.SplitHostPort(req.RemoteAddr)
@@ -87,7 +91,12 @@ func tryRead(conn *websocket.Conn) {
 			break
 		}
 
-		json.Unmarshal(p, &clientResponse)
+		err = json.Unmarshal(p, &clientResponse)
+
+		if err != nil {
+			SharedInformation.Logger.Error(err)
+			break
+		}
 
 		SharedInformation.Logger.Info(clientResponse)
 
