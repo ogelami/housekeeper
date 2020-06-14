@@ -114,7 +114,7 @@ func echo(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	SharedInformation.Logger.Critical("Client connected from ")
+	SharedInformation.Logger.Infof("Client connected from %s", r.RemoteAddr)
 
 	go tryRead(c)
 
@@ -134,7 +134,7 @@ func echo(w http.ResponseWriter, r *http.Request) {
 		err = c.WriteMessage(websocket.TextMessage, packedResponse)
 
 		if err != nil {
-			SharedInformation.Logger.Critical("write:", err)
+			SharedInformation.Logger.Error("write:", err)
 		}
 	})
 /*	if err != nil {
