@@ -123,7 +123,7 @@ func echo(w http.ResponseWriter, r *http.Request) {
 
 //			serverResponse.Topic = string(msg.Topic())
 //		serverResponse.Message = string(msg.Payload())
-		serverResponse := &s_websocketResponse{ Topic: string(msg.Topic()), Message: string(msg.Payload())}
+		serverResponse := &s_websocketResponse{ Topic: string(msg.Topic()), Message: string(msg.Payload()) }
 
 		packedResponse, err := json.Marshal(serverResponse)
 
