@@ -71,7 +71,7 @@ func main() {
 
 	if err != nil {
 		housekeeper.SharedInformation.Logger.Criticalf("%s", err)
-		return
+		os.Exit(3)
 	}
 
 //	housekeeper.SharedInformation.Logger.Criticalf("%s", configuration)
@@ -94,12 +94,14 @@ func main() {
 
 	if err != nil {
 		housekeeper.SharedInformation.Logger.Critical(err)
+		os.Exit(1)
 	}
 
 	err = housekeeper.StartWebserver()
 
 	if err != nil {
 		housekeeper.SharedInformation.Logger.Critical(err)
+		os.Exit(2)
 	}
 
 	for true {
