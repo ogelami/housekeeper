@@ -11,7 +11,6 @@ import(
 	"./housekeeper"
 	//"fmt"
 	"os"
-	"plugin"
 //	"strings"
 	"time"
 	"math/rand"
@@ -40,7 +39,6 @@ openssl req -new -x509 -sha256 -key bin/server.key -out bin/server.crt -days 365
 
 var (
 	CONFIGURATION_PATH string
-	PLUGIN_PATH string
 )
 
 var (
@@ -49,90 +47,35 @@ var (
 	kingpinRun = kingpinApp.Command("run", "Run CFDNSU in foreground").Default()
 
 	log = logging.MustGetLogger("logger")
-	pluginMap map[string]*plugin.Plugin
-	eventMap map[string][]plugin.Symbol
-	configuration s_configuration
 )
-
-type s_configuration struct {
-	MQTT struct {
-		Broker string `json:"broker"`
-		Username string `json:"username"`
-		Password string `json:"password"`
-	} `json:"mqtt"`
-	Plugin struct {
-		Load []string `json:"load"`
-		Configuration json.RawMessage `json:"configuration"`
-	} `json:"plugin"`
-}
 
 func loadConfiguration() error {
 	configurationData, err := ioutil.ReadFile(CONFIGURATION_PATH)
 
 /*	log.Critical(configurationData)
-	log.Critical(CONFIGURATION_PATH)
-	log.Critical("awat")*/
+	log.Critical(CONFIGURATION_PATH)*/
 
 	if err != nil {
 		log.Critical(err)
 		return err
 	}
 
-	err = json.Unmarshal(configurationData, &configuration)
+	err = json.Unmarshal(configurationData, &housekeeper.SharedInformation.Configuration)
+
+//	log.Critical(configuration)
 
 	if err != nil {
 		log.Critical(err)
 		return err
 	}
 
-	housekeeper.SharedInformation.Configuration = configuration.Plugin.Configuration
+//	housekeeper.SharedInformation.Configuration = configuration.Plugin.Configuration
 
 //	cloudflare.Auth = configuration.Auth
 //	cloudflare.Records = configuration.Records
 
 	return nil
 
-}
-
-func loadPlugins() {
-	var fullPath string
-	var symbol plugin.Symbol
-
-	eventMap = map[string][]plugin.Symbol{}
-
-	if len(configuration.Plugin.Load) > 0 {
-		for _, record := range configuration.Plugin.Load {
-			fullPath = PLUGIN_PATH + "/" + record
-
-			hotPlug, err := plugin.Open(fullPath)
-
-			if err != nil {
-				log.Critical(fullPath, err)
-				continue
-			}
-
-			for _, eventName := range []string{"Startup", "Shutdown", "IpChanged", "IpUpdated"} {
-				symbol, err = hotPlug.Lookup(eventName)
-
-				if err == nil {
-					eventMap[eventName] = append(eventMap[eventName], symbol)
-				}
-			}
-		}
-	}
-}
-
-func triggerEvent(eventName string) {
-	log.Infof("Event triggered %s", eventName)
-	if val, ok := eventMap[eventName]; ok {
-		for _, element := range val {
-			err := element.(func() error)()
-
-			if err != nil {
-				log.Error(err)
-			}
-		}
-	}
 }
 
 /*func resolveIp() (error, string) {
@@ -233,7 +176,11 @@ func run() {
 
 //	oldIp := ""
 
-	go triggerEvent("Startup")
+	err := housekeeper.StartWebserver()
+
+	if err != nil {
+		log.Critical(err)
+	}
 
 	for true {
 		time.Sleep(time.Second * 5)
@@ -305,18 +252,12 @@ func main() {
 	logging.SetFormatter(logging.MustStringFormatter(`%{color} %{shortfunc} ▶ %{level:.4s} %{color:reset} %{message}`))
 
 	var environmentVariableConfigPath = os.Getenv("HOUSEKEEPER_CONFIGURATION_PATH")
-	var environmentVariablePluginPath = os.Getenv("HOUSEKEEPER_PLUGIN_PATH")
 
 	if len(environmentVariableConfigPath) > 0 {
 		CONFIGURATION_PATH = environmentVariableConfigPath
 	}
 
-	if len(environmentVariablePluginPath) > 0 {
-		PLUGIN_PATH = environmentVariablePluginPath
-	}
-
 	err = loadConfiguration()
-	loadPlugins()
 
 	if err != nil {
 		log.Criticalf("%s", err)
@@ -328,9 +269,9 @@ func main() {
 
 	mqttOptions := MQTT.NewClientOptions()
 
-	mqttOptions.AddBroker(configuration.MQTT.Broker)
-	mqttOptions.SetUsername(configuration.MQTT.Username)
-	mqttOptions.SetPassword(configuration.MQTT.Password)
+	mqttOptions.AddBroker(housekeeper.SharedInformation.Configuration.MQTT.Broker)
+	mqttOptions.SetUsername(housekeeper.SharedInformation.Configuration.MQTT.Username)
+	mqttOptions.SetPassword(housekeeper.SharedInformation.Configuration.MQTT.Password)
 
 /*	log.Criticalf("%s", configuration.MQTT.Broker)
 	log.Criticalf("%s", configuration.MQTT.Username)

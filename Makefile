@@ -6,18 +6,13 @@ GOBIN := $(GOPATH)/bin
 SYSCONFDIR ?= $(PREFIX)/etc
 CONFIG_PATH := $(SYSCONFDIR)/$(CONFIG_FILE)
 SBINDIR := $(PREFIX)/usr/sbin
-LIBDIR ?= $(PREFIX)/usr/lib/housekeeper
-PLUGINS := $(wildcard plugin/*.go)
 
-.PHONY: all build build-plugins dep install clean
+.PHONY: all build dep install clean
 
-all : dep build build-plugins
-
-build-plugins : $(PLUGINS)
-	$(foreach plugin,$^, GOPATH=$(GOPATH) GOBIN=$(GOBIN) go build -buildmode=plugin -ldflags "-s" -o $(GOBIN)/$(notdir $(patsubst %.go,%.so,$(plugin))) $(plugin);)
+all : dep build
 
 build : main.go
-	GOPATH=$(GOPATH) GOBIN=$(GOBIN) go build -ldflags "-s -X main.CONFIGURATION_PATH=${CONFIG_PATH} -X main.PLUGIN_PATH=${LIBDIR}" -o $(GOBIN)/$(BINARY)
+	GOPATH=$(GOPATH) GOBIN=$(GOBIN) go build -ldflags "-s -X main.CONFIGURATION_PATH=${CONFIG_PATH}" -o $(GOBIN)/$(BINARY)
 
 dep:
 	GOPATH=$(GOPATH) GOBIN=$(GOBIN) go get -d
