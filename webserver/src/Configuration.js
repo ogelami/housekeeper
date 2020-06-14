@@ -1,7 +1,7 @@
 import BlitzWolfSHP from './components/appliance/BlitzWolfSHP';
 
 const Config = {
-  webSocketServer: '127.0.0.1',
+  webSocketServer: '127.0.0.1:1337',
   switchList: [
     {
       type: BlitzWolfSHP,

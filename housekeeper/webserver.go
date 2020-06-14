@@ -114,7 +114,7 @@ func echo(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	SharedInformation.Logger.Critical("blip")
+	SharedInformation.Logger.Critical("Client connected from ")
 
 	go tryRead(c)
 
@@ -197,13 +197,13 @@ func StartWebserver() error {
 /*		TLSConfig: cfg,
 		TLSNextProto: make(map[string]func(*http.Server, *tls.Conn, http.Handler), 0),*/
 	}
-	
+
 	if err != nil {
 		return err
 	}
 
 	SharedInformation.Logger.Info("Serving")
-	
+
 	err = srv.ListenAndServe()
 //	err = srv.ListenAndServeTLS(housekeeper.Configuration.Webserver.Certificate, configuration.Webserver.CertificateKey)
 
