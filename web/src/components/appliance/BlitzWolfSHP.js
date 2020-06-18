@@ -3,10 +3,16 @@ import React from 'react';
 class BlitzWolfSHP extends React.Component {
   constructor(props) {
     super(props);
-
-    console.log(props);
-
     this.state = { on : false };
+  }
+
+  componentDidMount() {
+    this.props.registerMessageReceivedListener(data => {
+      if (data.topic === this.props.status) {
+        this.setState({ on: data.message === 'ON' });
+        console.log(data.message);
+      }
+    });
   }
 
   config = {
@@ -17,8 +23,7 @@ class BlitzWolfSHP extends React.Component {
   changeState = () => {
     let newState = !this.state.on;
 
-    this.setState({ on: newState });
-    this.props.f(this.props.command, newState ? '1' : '0');
+    this.props.broadcastMessage(this.props.command, newState ? 'ON' : 'OFF');
   }
 
   render() {

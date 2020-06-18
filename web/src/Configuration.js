@@ -1,7 +1,7 @@
 import BlitzWolfSHP from './components/appliance/BlitzWolfSHP';
 
 const Config = {
-  webSocketServer: '127.0.0.1:1337',
+  webSocketServer: false,
   switchList: [
     {
       type: BlitzWolfSHP,
@@ -16,6 +16,20 @@ const Config = {
       location: 'window',
       command: 'livingroom_light_window/cmnd/POWER',
       status: 'livingroom_light_window/stat/POWER'
+    },
+    {
+      type: BlitzWolfSHP,
+      room: 'bedroom',
+      location: 'left',
+      command: 'bedroom_light_left/cmnd/POWER',
+      status: 'bedroom_light_left/cmnd/POWER'
+    },
+    {
+      type: BlitzWolfSHP,
+      room: 'bedroom',
+      location: 'window',
+      command: 'bedroom_light_window/cmnd/POWER',
+      status: 'bedroom_light_window/cmnd/POWER'
     }
   ]
 };
