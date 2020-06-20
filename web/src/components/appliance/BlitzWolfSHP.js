@@ -28,9 +28,17 @@ class BlitzWolfSHP extends React.Component {
 
   render() {
     return (
-      <div onClick={this.changeState}>
-        <span className={'mdi ' + (this.state.on ? this.config.icon[0] : this.config.icon[1])}/>
-        {this.props.room}, {this.props.location}
+      <div onClick={this.changeState} className={'flip-card ' + (this.state.on ? 'on':'')}>
+        <div className="flip-card-inner">
+          <div className="flip-card-front">
+            <span className={'mdi ' + this.config.icon[1]}/>
+            {this.props.room}, {this.props.location}
+          </div>
+          <div className="flip-card-back">
+            <span className={'mdi ' + this.config.icon[0]}/>
+            {this.props.room}, {this.props.location}
+          </div>
+        </div>
       </div>
     );
   }

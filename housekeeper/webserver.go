@@ -3,13 +3,7 @@ package housekeeper
 import (
 	"encoding/json"
 	"net/http"
-	//"net"
 	"errors"
-	//"io/ioutil"
-//	"strings"
-	//"os"
-//	"crypto/tls"
-	MQTT "github.com/eclipse/paho.mqtt.golang"
 	"github.com/gorilla/websocket"
 )
 
@@ -18,47 +12,85 @@ type s_websocketResponse struct {
 	Message string `json:"message"`
 }
 
+type Client struct {
+	hub *S_Hub
+	conn *websocket.Conn
+}
+
+func (c *Client) readPump() {
+	clientResponse := s_websocketResponse{}
+
+	for {
+		_, message, err := c.conn.ReadMessage()
+
+		if err != nil {
+			SharedInformation.Logger.Error(err)
+			
+			break
+		}
+
+		err = json.Unmarshal(message, &clientResponse)
+
+		if err != nil {
+			SharedInformation.Logger.Error(err)
+			
+			break
+		}
+
+		PublishMQTTMessage(clientResponse.Topic, clientResponse.Message)
+	}
+}
+
+type S_Hub struct {
+	// Registered clients.
+	clients map[*Client]bool
+
+	// Inbound messages from the clients.
+	broadcast chan *S_MQTTResponse
+
+	// Register requests from the clients.
+	register chan *Client
+
+	// Unregister requests from clients.
+	unregister chan *Client
+}
+
+func newHub() *S_Hub {
+	return &S_Hub{
+		broadcast:  make(chan *S_MQTTResponse),
+		register:   make(chan *Client),
+		unregister: make(chan *Client),
+		clients:    make(map[*Client]bool),
+	}
+}
+
+func (h *S_Hub) run() {
+	for {
+		select {
+		case client := <-h.register:
+			h.clients[client] = true
+		case message := <-h.broadcast:
+			packedResponse, err := json.Marshal(message)
+
+			if err != nil {
+				SharedInformation.Logger.Error(err)
+				break
+			}
+
+			for client := range h.clients {
+/*				SharedInformation.Logger.Error(packedResponse)
+				SharedInformation.Logger.Error(client)*/
+				client.conn.WriteMessage(websocket.TextMessage, packedResponse)
+			}
+		}
+	}
+}
+
 var upgrader = websocket.Upgrader {
 	CheckOrigin: func(r *http.Request) bool {
 		return true
 	},
 }
-
-/*func PongServer(w http.ResponseWriter, req *http.Request) {
-//	ip, port, err := net.SplitHostPort(req.RemoteAddr)
-	_, _, err := net.SplitHostPort(req.RemoteAddr)
-
-//	SharedInformation.Logger.Error(req.URL.Path)
-//	SharedInformation.Logger.Error(configuration.Webserver.WebPath)
-
-	if err != nil {
-		SharedInformation.Logger.Error(err)
-	}
-
-//	if configuration.Webserver.LogRequests {
-//		SharedInformation.Logger.Infof("%s:%s made an ip request", ip, port)
-//	}
-
-//	file := configuration.Webserver.WebPath + "/" + req.URL.Path[strings.LastIndex(req.URL.Path, "/") + 1:]
-	file := configuration.Webserver.WebPath + req.URL.Path
-
-	SharedInformation.Logger.Infof("> %s", file)
-
-//	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-//	w.Header().Add("Strict-Transport-Security", "max-age=63072000; includeSubDomains")
-	SharedInformation.Logger.Error(w.Header())
-
-	_, err = os.Stat(file)
-
-	if err != nil {
-		SharedInformation.Logger.Warningf("%s does not exist!", file)
-		body, _ := ioutil.ReadFile(configuration.Webserver.WebPath + "/" + configuration.Webserver.Index)
-		w.Write([]byte(body))
-	} else {
-		body, _ := ioutil.ReadFile(file)
-		w.Write([]byte(body))
-	}
-}*/
 
 func validateConfiguration() error {
 	if SharedInformation.Configuration.Webserver.Protocol == "" {
@@ -80,86 +112,31 @@ func validateConfiguration() error {
 	return nil
 }
 
-func tryRead(conn *websocket.Conn) {
+func listenForWebsocketIncoming() {
 	clientResponse := s_websocketResponse{}
 
 	for {
-		_, p, err := conn.ReadMessage()
+		for client := range SharedInformation.Hub.clients {
+			_, p, err := client.conn.ReadMessage()
 
-		if err != nil {
-			SharedInformation.Logger.Error(err)
-			break
+			if err != nil {
+				SharedInformation.Logger.Error(err)
+				break
+			}
+
+			err = json.Unmarshal(p, &clientResponse)
+
+			if err != nil {
+				SharedInformation.Logger.Error(err)
+				break
+			}
+
+//			SharedInformation.Logger.Info(clientResponse)
+//			SharedInformation.Logger.Info(clientResponse.Topic, clientResponse.Message)
+
+			PublishMQTTMessage(clientResponse.Topic, clientResponse.Message)
 		}
-
-		err = json.Unmarshal(p, &clientResponse)
-
-		if err != nil {
-			SharedInformation.Logger.Error(err)
-			break
-		}
-
-		SharedInformation.Logger.Info(clientResponse)
-
-//		SharedInformation.Logger.Info(p)
-
-		SharedInformation.MQTTClient.Publish(clientResponse.Topic, 0, true, clientResponse.Message)
 	}
-}
-
-func echo(w http.ResponseWriter, r *http.Request) {
-	c, err := upgrader.Upgrade(w, r, nil)
-
-	if err != nil {
-		SharedInformation.Logger.Error(err)
-		return
-	}
-
-	SharedInformation.Logger.Infof("Client connected from %s", r.RemoteAddr)
-
-	go tryRead(c)
-
-	SharedInformation.MQTTClient.Subscribe("#", 0, func(client MQTT.Client, msg MQTT.Message) {
-//		SharedInformation.Logger.Criticalf("webbie says * [%s] %s\n", msg.Topic(), string(msg.Payload()))
-
-//			serverResponse.Topic = string(msg.Topic())
-//		serverResponse.Message = string(msg.Payload())
-		serverResponse := &s_websocketResponse{ Topic: string(msg.Topic()), Message: string(msg.Payload()) }
-
-		packedResponse, err := json.Marshal(serverResponse)
-
-		if err != nil {
-			SharedInformation.Logger.Error(err)
-		}
-
-		err = c.WriteMessage(websocket.TextMessage, packedResponse)
-
-		if err != nil {
-			SharedInformation.Logger.Error("write:", err)
-		}
-	})
-/*	if err != nil {
-		SharedInformation.Logger.Critical("upgrade:", err)
-		return
-	}
-
-	defer c.Close()
-
-	for {
-		mt, message, err := c.ReadMessage()
-
-		if err != nil {
-			SharedInformation.Logger.Critical("read:", err)
-			break
-		}
-
-		SharedInformation.Logger.Criticalf("recv: %s", message)
-		err = c.WriteMessage(mt, message)
-
-		if err != nil {
-			SharedInformation.Logger.Critical("write:", err)
-			break
-		}
-	}*/
 }
 
 func StartWebserver() error {
@@ -171,9 +148,27 @@ func StartWebserver() error {
 
 	mux := http.NewServeMux()
 	fs := http.FileServer(http.Dir(SharedInformation.Configuration.Webserver.WebPath))
+	SharedInformation.Hub = newHub()
+
+	go SharedInformation.Hub.run()
 
 	mux.Handle("/", fs)
-	mux.HandleFunc("/echo", echo)
+	mux.HandleFunc("/echo", func(w http.ResponseWriter, r *http.Request) {
+		conn, err := upgrader.Upgrade(w, r, nil)
+
+		if err != nil {
+			SharedInformation.Logger.Error(err)
+			return
+		}
+
+		SharedInformation.Logger.Infof("Client connected from %s", r.RemoteAddr)
+
+		client := &Client{hub: SharedInformation.Hub, conn: conn}
+
+		go client.readPump()
+
+		SharedInformation.Hub.register <- client
+	})
 
 /*	cfg := &tls.Config{
 		MinVersion: tls.VersionTLS12,

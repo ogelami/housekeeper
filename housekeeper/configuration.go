@@ -2,7 +2,6 @@ package housekeeper
 
 import(
 	"github.com/op/go-logging"
-	MQTT "github.com/eclipse/paho.mqtt.golang"
 )
 
 type S_configuration struct {
@@ -23,8 +22,8 @@ type S_configuration struct {
 
 type sharedInformation struct {
 	Logger *logging.Logger
-	MQTTClient MQTT.Client
 	Configuration *S_configuration
+	Hub *S_Hub
 }
 
 var SharedInformation = sharedInformation{ nil, nil, nil }

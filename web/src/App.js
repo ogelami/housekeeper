@@ -24,8 +24,6 @@ class App extends React.Component {
   }
 
   componentDidMount() {
-    console.log('mounted');
-
     this.webSocket.onopen = () => {
       console.log('connected');
     }
