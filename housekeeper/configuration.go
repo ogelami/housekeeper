@@ -18,6 +18,7 @@ type S_configuration struct {
 		CertificateKey string `json:"certificate_key"`
 //		LogRequests bool `json:"log_requests"`
 	} `json:"webserver"`
+	LogFile string `json:"log_file"`
 }
 
 type sharedInformation struct {

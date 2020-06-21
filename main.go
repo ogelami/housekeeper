@@ -56,12 +56,30 @@ func loadConfiguration() error {
 	return nil
 }
 
+func setupLogger() {
+	logFileHandler, err := os.OpenFile(housekeeper.SharedInformation.Configuration.LogFile, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+
+	housekeeper.SharedInformation.Logger = logging.MustGetLogger("logger")
+	logging.SetFormatter(logging.MustStringFormatter(`%{color}%{shortfunc} ▶ %{level:.4s} %{color:reset} %{message}`))
+
+	backend1 := logging.NewLogBackend(os.Stdout, "", 0)
+
+	logFile := logging.NewLogBackend(logFileHandler, "", 0)
+	logFileLeveled := logging.AddModuleLevel(logFile)
+	logFileLeveled.SetLevel(logging.ERROR, "")
+
+	logging.SetBackend(backend1, logFileLeveled)
+
+	if err != nil {
+		housekeeper.SharedInformation.Logger.Critical(err)
+		os.Exit(4)
+	}
+}
+
 func main() {
 	rand.Seed(time.Now().Unix())
-	housekeeper.SharedInformation.Logger = logging.MustGetLogger("logger")
-	logging.SetFormatter(logging.MustStringFormatter(`%{color} %{shortfunc} ▶ %{level:.4s} %{color:reset} %{message}`))
-
-	var environmentVariableConfigPath = os.Getenv("HOUSEKEEPER_CONFIGURATION_PATH")
+	
+	environmentVariableConfigPath := os.Getenv("HOUSEKEEPER_CONFIGURATION_PATH")
 
 	if len(environmentVariableConfigPath) > 0 {
 		CONFIGURATION_PATH = environmentVariableConfigPath
@@ -69,17 +87,12 @@ func main() {
 
 	err := loadConfiguration()
 
+	setupLogger()
+
 	if err != nil {
-		housekeeper.SharedInformation.Logger.Criticalf("%s", err)
+		housekeeper.SharedInformation.Logger.Critical(err)
 		os.Exit(3)
 	}
-
-//	housekeeper.SharedInformation.Logger.Criticalf("%s", configuration)
-//	housekeeper.SharedInformation.Logger.Criticalf("%s", configuration.MQTT.Broker)
-
-/*	client.Subscribe("#", 0, func(client MQTT.Client, msg MQTT.Message) {
-		housekeeper.SharedInformation.Logger.Criticalf("* [%s] %s\n", msg.Topic(), string(msg.Payload()))
-	})*/
 
 	sigc := make(chan os.Signal, 1)
 	signal.Notify(sigc, os.Interrupt, os.Kill, syscall.SIGTERM)
