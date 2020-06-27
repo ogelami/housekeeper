@@ -9,7 +9,7 @@ body
   height: 100%;
   margin: 0;
   padding: 25px;
-  background: url('/v.png') repeat #000;
+  background: url('/image/v.png') repeat #000;
 }
 
 main
@@ -58,12 +58,29 @@ main
 }
 
 .flip-card-front {
-  background-color: rgb(138, 0, 0);
+  background-color: #0a7a78;
   color: white;
 }
 
+.weather-block {
+  width: 100px;
+  display: inline-block;
+  background-color: Khaki;
+  border-radius: 5px;
+  border: 1px dashed #000;
+  margin: 3px;
+}
+
+.weather-block > img{
+  width: 64px;
+}
+
+.weather-block > .time, .humidity, .speed, .temperature, .wind {
+  display: block;
+}
+
 .flip-card-back {
-  background-color: #007025;
+  background-color: #f57a31;
   color: white;
   transform: rotateX(-180deg);
 }
@@ -74,7 +91,7 @@ main
   }
 }
 
-.appliances > div
+.appliances > .flip-card
 {
   width: 100px;
   height: 100px;

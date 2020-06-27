@@ -2,6 +2,21 @@ import BlitzWolfSHP from './components/appliance/BlitzWolfSHP';
 
 const Config = {
   webSocketServer: false,
+  sLDisturbance:
+  {
+    apiKey: '',
+    transportMode: 'metro',
+    lineNumber: [17, 18, 19],
+    refreshRate: 600000
+  },
+  openWeather:
+  {
+    apiKey: '',
+    latitude: 0.0,
+    longitude: 0.0,
+    refreshRate: 600000,
+    units: 'metric'
+  },
   switchList: [
     {
       type: BlitzWolfSHP,
