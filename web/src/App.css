@@ -16,7 +16,6 @@ main
 {
     background-color: #fff;
     position: relative;
-    border: 1px solid rgba(0, 0, 0, .125);
 }
 
 #app {
@@ -65,7 +64,7 @@ main
 .weather-block {
   width: 100px;
   display: inline-block;
-  background-color: Khaki;
+  background-color: #0aAaa8;
   border-radius: 5px;
   border: 1px dashed #000;
   margin: 3px;
@@ -77,6 +76,22 @@ main
 
 .weather-block > .time, .humidity, .speed, .temperature, .wind {
   display: block;
+}
+
+.sl-disturbance > div {
+  margin: 3px 0 3px 0;
+  display: block;
+}
+
+.sl-disturbance > div > .header {
+  border-width: 1px 0 1px 0;
+  border-color: #f00;
+  border-style: solid;
+}
+
+.sl-disturbance > button {
+  width: 100px;
+  height: 100px;
 }
 
 .flip-card-back {

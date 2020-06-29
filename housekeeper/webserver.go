@@ -3,6 +3,7 @@ package housekeeper
 import (
 	"encoding/json"
 	"net/http"
+	"io"
 	"errors"
 	"github.com/gorilla/websocket"
 )
@@ -147,12 +148,12 @@ func StartWebserver() error {
 	}
 
 	mux := http.NewServeMux()
-	fs := http.FileServer(http.Dir(SharedInformation.Configuration.Webserver.WebPath))
 	SharedInformation.Hub = newHub()
 
 	go SharedInformation.Hub.run()
 
-	mux.Handle("/", fs)
+	mux.Handle("/", http.FileServer(http.Dir(SharedInformation.Configuration.Webserver.WebPath)))
+
 	mux.HandleFunc("/echo", func(w http.ResponseWriter, r *http.Request) {
 		conn, err := upgrader.Upgrade(w, r, nil)
 
@@ -168,6 +169,81 @@ func StartWebserver() error {
 		go client.readPump()
 
 		SharedInformation.Hub.register <- client
+	})
+
+	mux.HandleFunc("/tun", func(w http.ResponseWriter, req *http.Request) {
+
+//		resp, err := http.Get(r.Header["Tunnel"])
+
+
+//		client := &http.Client{}
+
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		w.Header().Set("Access-Control-Allow-Headers", "*")
+
+		if len(req.Header["Tunnel"]) != 0 {
+
+//			SharedInformation.Logger.Info(req.Header["Tunnel"][0])
+
+//			SharedInformation.Logger.Info("a")
+
+			proxyReq, err := http.NewRequest(req.Method, req.Header["Tunnel"][0], req.Body)
+
+//			SharedInformation.Logger.Info("b")
+
+			if err != nil {
+				SharedInformation.Logger.Error(err)
+			}
+
+//			SharedInformation.Logger.Info(req.Header)
+
+//			SharedInformation.Logger.Info("CC")
+
+			proxyReq.Header = req.Header.Clone()
+
+//			SharedInformation.Logger.Info(req.Header.Clone())
+
+/*	    for header, values := range req.Header {
+	        for _, value := range values {
+							SharedInformation.Logger.Infof("%s:%s\n", header, value)
+
+	            proxyReq.Header.Add(header, value)
+	        }
+	    }*/
+
+//			SharedInformation.Logger.Info("c")
+
+
+			client := &http.Client{}
+
+//			SharedInformation.Logger.Info("d")
+
+			resp, err := client.Do(proxyReq)
+
+			if err != nil {
+				SharedInformation.Logger.Error(err)
+			}
+
+	//		SharedInformation.Logger.Info("e")
+
+//			SharedInformation.Logger.Info(resp.Body)
+//			w.Write(resp.Body)
+
+			io.Copy(w, resp.Body)
+
+			//SharedInformation.Logger.Warning("/tun request missing Tunnel path.")
+		}
+
+//		SharedInformation.Logger.Info(r.Header["Tunnel"][0])
+
+//		SharedInformation.Logger.Info(r)
+/*
+		r.URL, _ = url.Parse(sturl)
+
+		resp, _ := client.Do(r)
+
+		SharedInformation.Logger.Info(resp)
+		*/
 	})
 
 /*	cfg := &tls.Config{
