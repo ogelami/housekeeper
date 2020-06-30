@@ -27,6 +27,8 @@ class WeatherBar extends React.Component {
 
 //    console.log(`http://api.openweathermap.org/data/2.5/forecast?${urlParameters}`);
 
+    this.setState({'weatherData':[]});
+
     axios.get(`http://api.openweathermap.org/data/2.5/forecast?${urlParameters}`)
       .then(res => {
         const weatherData = res.data;
@@ -46,15 +48,15 @@ class WeatherBar extends React.Component {
   render() {
     return (
       <div onClick={this.fetchWeather} className='weather-bar'>
-      {this.state.weatherData.map((item, iterator) =>
-        <div className='weather-block' key={iterator}>
-          <span className="time">{item.time.format('HH:mm')}</span>
-          <img alt={'image for weather condition ' + iterator} src={item.icon} />
-          <span className="temperature">{item.temperature} °C</span>
-          <span className="humidity">{item.humidity} %</span>
-          <span className="wind">{item.wind} ms</span>
-        </div>
-      )}
+        {this.state.weatherData.map((item, iterator) =>
+          <div className='weather-block' key={iterator}>
+            <span className="time">{item.time.format('HH:mm')}</span>
+            <img alt={'image for weather condition ' + iterator} src={item.icon} />
+            <span className="temperature">{item.temperature} °C</span>
+            <span className="humidity">{item.humidity} %</span>
+            <span className="wind">{item.wind} ms</span>
+          </div>
+        )}
       </div>
     );
   }

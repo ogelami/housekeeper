@@ -61,13 +61,17 @@ main
   color: white;
 }
 
+.weather-bar {
+  margin: 3px 0 3px 0;
+}
+
 .weather-block {
   width: 100px;
   display: inline-block;
   background-color: #0aAaa8;
   border-radius: 5px;
-  border: 1px dashed #000;
-  margin: 3px;
+  border: 1px solid #000;
+  margin: 0 3px 0 3px;
 }
 
 .weather-block > img{
@@ -78,18 +82,23 @@ main
   display: block;
 }
 
-.sl-disturbance > div {
+.sl-disturbance {
   margin: 3px 0 3px 0;
+}
+
+.sl-disturbance > div {
   display: block;
 }
 
 .sl-disturbance > div > .header {
   border-width: 1px 0 1px 0;
-  border-color: #f00;
+  border-color: #000;
   border-style: solid;
+  background-color: #0aAaa8;
 }
 
-.sl-disturbance > button {
+button.button-square {
+  display: block;
   width: 100px;
   height: 100px;
 }
@@ -106,13 +115,19 @@ main
   }
 }
 
+.appliances {
+  margin: 3px;
+  display: block;
+}
+
 .appliances > .flip-card
 {
   width: 100px;
   height: 100px;
   display: inline-block;
   border: 1px solid #000;
-  margin: 3px;
+  border-radius: 5px;
+  margin: 3px 3px 0 3px;
 }
 
 .overlay
