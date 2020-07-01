@@ -2,10 +2,11 @@
 
 import React from 'react';
 import axios from 'axios';
+import SuperComponent from './SuperComponent';
 
-class SLDisturbance extends React.Component {
+class SLDisturbance extends SuperComponent {
   constructor(props) {
-    super(props);
+    super(props, { apiKey : re => re.match(/[a-zA-Z0-9]/) });
     this.state = { disturbanceData : [] };
   }
 
@@ -22,14 +23,25 @@ class SLDisturbance extends React.Component {
   }
 
   fetchSLDisturbances = () => {
-    const urlParameters = new URLSearchParams({
-      'key': this.props.apiKey,
-      'transportMode': this.props.transportMode,
-      'lineNumber': this.props.lineNumber.join(','),
-    });
+    if(!this.validatePropTypes())
+    {
+      return;
+    }
+
+    const urlParameters = new URLSearchParams({ 'key': this.props.apiKey });
+
+    if(this.props.transportMode)
+    {
+      urlParameters.append('transportMode', this.props.transportMode);
+    }
+
+    if(this.props.lineNumber)
+    {
+      urlParameters.append('lineNumber', this.props.lineNumber.join(','));
+    }
 
     const url = `http://api.sl.se/api2/deviations.JSON?${urlParameters}`;
-    console.log(url, 1);
+//    console.log(url, 1);
     
 //    axios.get('http://192.168.0.88:80/tun', null, {headers: {Tunnel: 'dof'}})
 
@@ -45,7 +57,12 @@ class SLDisturbance extends React.Component {
       }
     })
     .then(res => {
+      console.log(res);
       this.setState({'disturbanceData': res.data['ResponseData']});
+    })
+    .catch(function (error) {
+      // handle error
+      console.log(error);
     });
   }
 

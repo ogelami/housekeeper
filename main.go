@@ -1,15 +1,16 @@
 package main
 
-import(
-	"github.com/op/go-logging"
-	"io/ioutil"
+import (
 	"encoding/json"
-	"./housekeeper"
-	"os"
-	"time"
+	"io/ioutil"
 	"math/rand"
-	"syscall"
+	"os"
 	"os/signal"
+	"syscall"
+	"time"
+
+	"./housekeeper"
+	"github.com/op/go-logging"
 )
 
 /**
@@ -36,8 +37,8 @@ var (
 func loadConfiguration() error {
 	configurationData, err := ioutil.ReadFile(CONFIGURATION_PATH)
 
-/*	housekeeper.SharedInformation.Logger.Critical(configurationData)
-	housekeeper.SharedInformation.Logger.Critical(CONFIGURATION_PATH)*/
+	/*	housekeeper.SharedInformation.Logger.Critical(configurationData)
+		housekeeper.SharedInformation.Logger.Critical(CONFIGURATION_PATH)*/
 
 	if err != nil {
 		housekeeper.SharedInformation.Logger.Critical(err)
@@ -46,7 +47,7 @@ func loadConfiguration() error {
 
 	err = json.Unmarshal(configurationData, &housekeeper.SharedInformation.Configuration)
 
-//	housekeeper.SharedInformation.Logger.Critical(configuration)
+	//	housekeeper.SharedInformation.Logger.Critical(configuration)
 
 	if err != nil {
 		housekeeper.SharedInformation.Logger.Critical(err)
@@ -78,7 +79,7 @@ func setupLogger() {
 
 func main() {
 	rand.Seed(time.Now().Unix())
-	
+
 	environmentVariableConfigPath := os.Getenv("HOUSEKEEPER_CONFIGURATION_PATH")
 
 	if len(environmentVariableConfigPath) > 0 {
@@ -106,8 +107,8 @@ func main() {
 	err = housekeeper.ConnectMQTTClient()
 
 	if err != nil {
-		housekeeper.SharedInformation.Logger.Critical(err)
-		os.Exit(1)
+		housekeeper.SharedInformation.Logger.Error(err)
+		housekeeper.SharedInformation.Logger.Error("Failed to connect to MQTT broker.")
 	}
 
 	err = housekeeper.StartWebserver()

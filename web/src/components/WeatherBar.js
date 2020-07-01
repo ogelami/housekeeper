@@ -1,10 +1,16 @@
 import React from 'react';
 import axios from 'axios';
-import moment from 'moment'
+import moment from 'moment';
+import SuperComponent from './SuperComponent';
 
-class WeatherBar extends React.Component {
+class WeatherBar extends SuperComponent {
   constructor(props) {
-    super(props);
+    super(props, {
+      apiKey : re => re.match(/[a-zA-Z0-9]/),
+      latitude : SuperComponent.availablePropTypes.float,
+      longitude : SuperComponent.availablePropTypes.float
+    });
+
     this.state = { weatherData : [] };
   }
   
@@ -18,6 +24,11 @@ class WeatherBar extends React.Component {
   }
 
   fetchWeather = () => {
+    if(!this.validatePropTypes())
+    {
+      return;
+    }
+
     const urlParameters = new URLSearchParams({
       'appid': this.props.apiKey,
       'lat': this.props.latitude,
