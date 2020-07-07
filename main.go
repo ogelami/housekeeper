@@ -37,20 +37,20 @@ var (
 func loadConfiguration() error {
 	configurationData, err := ioutil.ReadFile(CONFIGURATION_PATH)
 
-	/*	housekeeper.SharedInformation.Logger.Critical(configurationData)
-		housekeeper.SharedInformation.Logger.Critical(CONFIGURATION_PATH)*/
+	/*	housekeeper.Logger.Critical(configurationData)
+		housekeeper.Logger.Critical(CONFIGURATION_PATH)*/
 
 	if err != nil {
-		housekeeper.SharedInformation.Logger.Critical(err)
+		housekeeper.Logger.Critical(err)
 		return err
 	}
 
-	err = json.Unmarshal(configurationData, &housekeeper.SharedInformation.Configuration)
+	err = json.Unmarshal(configurationData, &housekeeper.Configuration)
 
-	//	housekeeper.SharedInformation.Logger.Critical(configuration)
+	//	housekeeper.Logger.Critical(configuration)
 
 	if err != nil {
-		housekeeper.SharedInformation.Logger.Critical(err)
+		housekeeper.Logger.Critical(err)
 		return err
 	}
 
@@ -58,22 +58,26 @@ func loadConfiguration() error {
 }
 
 func setupLogger() {
-	logFileHandler, err := os.OpenFile(housekeeper.SharedInformation.Configuration.LogFile, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
-
-	housekeeper.SharedInformation.Logger = logging.MustGetLogger("logger")
+	housekeeper.Logger = logging.MustGetLogger("logger")
 	logging.SetFormatter(logging.MustStringFormatter(`%{color}%{shortfunc} ▶ %{level:.4s} %{color:reset} %{message}`))
 
 	backend1 := logging.NewLogBackend(os.Stdout, "", 0)
 
-	logFile := logging.NewLogBackend(logFileHandler, "", 0)
-	logFileLeveled := logging.AddModuleLevel(logFile)
-	logFileLeveled.SetLevel(logging.ERROR, "")
+	if len(housekeeper.Configuration.LogFile) > 0 {
+		logFileHandler, err := os.OpenFile(housekeeper.Configuration.LogFile, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 
-	logging.SetBackend(backend1, logFileLeveled)
+		if err != nil {
+			housekeeper.Logger.Critical(err)
+			os.Exit(4)
+		}
 
-	if err != nil {
-		housekeeper.SharedInformation.Logger.Critical(err)
-		os.Exit(4)
+		logFile := logging.NewLogBackend(logFileHandler, "", 0)
+		backend2 := logging.AddModuleLevel(logFile)
+		backend2.SetLevel(logging.ERROR, "")
+
+		logging.SetBackend(backend1, backend2)
+	} else {
+		logging.SetBackend(backend1)
 	}
 }
 
@@ -91,7 +95,7 @@ func main() {
 	setupLogger()
 
 	if err != nil {
-		housekeeper.SharedInformation.Logger.Critical(err)
+		housekeeper.Logger.Critical(err)
 		os.Exit(3)
 	}
 
@@ -100,21 +104,21 @@ func main() {
 
 	go func(c chan os.Signal) {
 		sig := <-c
-		housekeeper.SharedInformation.Logger.Infof("Caught signal %s: shutting down.", sig)
+		housekeeper.Logger.Infof("Caught signal %s: shutting down.", sig)
 		os.Exit(0)
 	}(sigc)
 
 	err = housekeeper.ConnectMQTTClient()
 
 	if err != nil {
-		housekeeper.SharedInformation.Logger.Error(err)
-		housekeeper.SharedInformation.Logger.Error("Failed to connect to MQTT broker.")
+		housekeeper.Logger.Error(err)
+		housekeeper.Logger.Error("Failed to connect to MQTT broker.")
 	}
 
 	err = housekeeper.StartWebserver()
 
 	if err != nil {
-		housekeeper.SharedInformation.Logger.Critical(err)
+		housekeeper.Logger.Critical(err)
 		os.Exit(2)
 	}
 

@@ -1,30 +1,31 @@
 package housekeeper
 
-import(
+import (
 	"github.com/op/go-logging"
 )
 
-type S_configuration struct {
+type configuration struct {
 	MQTT struct {
-		Broker string `json:"broker"`
+		Broker   string `json:"broker"`
 		Username string `json:"username"`
 		Password string `json:"password"`
 	} `json:"mqtt"`
 	Webserver struct {
-		Protocol string `json:"protocol"`
-		Listen string `json:"listen"`
-		WebPath string `json:"web_path"`
-		Certificate string `json:"certificate"`
+		Protocol       string `json:"protocol"`
+		Listen         string `json:"listen"`
+		WebPath        string `json:"web_path"`
+		Certificate    string `json:"certificate"`
 		CertificateKey string `json:"certificate_key"`
-//		LogRequests bool `json:"log_requests"`
+		//		LogRequests bool `json:"log_requests"`
 	} `json:"webserver"`
 	LogFile string `json:"log_file"`
 }
 
-type sharedInformation struct {
-	Logger *logging.Logger
-	Configuration *S_configuration
-	Hub *S_Hub
-}
+//Logger used by housekeeper to print to console and log file.
+var Logger *logging.Logger
 
-var SharedInformation = sharedInformation{ nil, nil, nil }
+//Configuration parsed configuration struct.
+var Configuration *configuration
+
+//Hub webserver hub for keeping track of connected clients.
+var Hub *S_Hub

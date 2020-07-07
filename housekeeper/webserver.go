@@ -26,15 +26,15 @@ func (client *Client) readPump() {
 		_, message, err := client.conn.ReadMessage()
 
 		if err != nil {
-			SharedInformation.Logger.Error(err)
-			SharedInformation.Hub.unregister <- client
+			Logger.Error(err)
+			Hub.unregister <- client
 			break
 		}
 
 		err = json.Unmarshal(message, &clientResponse)
 
 		if err != nil {
-			SharedInformation.Logger.Error(err)
+			Logger.Error(err)
 
 			break
 		}
@@ -72,19 +72,19 @@ func (h *S_Hub) run() {
 		case client := <-h.register:
 			h.clients[client] = true
 		case client := <-h.unregister:
-			SharedInformation.Logger.Infof("Client disconnected from %s", client.conn.RemoteAddr().String())
+			Logger.Infof("Client disconnected from %s", client.conn.RemoteAddr().String())
 			delete(h.clients, client)
 		case message := <-h.broadcast:
 			packedResponse, err := json.Marshal(message)
 
 			if err != nil {
-				SharedInformation.Logger.Error(err)
+				Logger.Error(err)
 				break
 			}
 
 			for client := range h.clients {
-				/*				SharedInformation.Logger.Error(packedResponse)
-								SharedInformation.Logger.Error(client)*/
+				/*				Logger.Error(packedResponse)
+								Logger.Error(client)*/
 				client.conn.WriteMessage(websocket.TextMessage, packedResponse)
 			}
 		}
@@ -98,11 +98,11 @@ var upgrader = websocket.Upgrader{
 }
 
 func validateConfiguration() error {
-	if SharedInformation.Configuration.Webserver.Protocol == "" {
+	if Configuration.Webserver.Protocol == "" {
 		return errors.New("Webserver.Protocol missing from configuration")
 	}
 
-	if SharedInformation.Configuration.Webserver.Listen == "" {
+	if Configuration.Webserver.Listen == "" {
 		return errors.New("Webserver.Listen missing from configuration")
 	}
 
@@ -121,23 +121,23 @@ func listenForWebsocketIncoming() {
 	clientResponse := s_websocketResponse{}
 
 	for {
-		for client := range SharedInformation.Hub.clients {
+		for client := range Hub.clients {
 			_, p, err := client.conn.ReadMessage()
 
 			if err != nil {
-				SharedInformation.Logger.Error(err)
+				Logger.Error(err)
 				break
 			}
 
 			err = json.Unmarshal(p, &clientResponse)
 
 			if err != nil {
-				SharedInformation.Logger.Error(err)
+				Logger.Error(err)
 				break
 			}
 
-			//			SharedInformation.Logger.Info(clientResponse)
-			//			SharedInformation.Logger.Info(clientResponse.Topic, clientResponse.Message)
+			//			Logger.Info(clientResponse)
+			//			Logger.Info(clientResponse.Topic, clientResponse.Message)
 
 			PublishMQTTMessage(clientResponse.Topic, clientResponse.Message)
 		}
@@ -152,25 +152,25 @@ func StartWebserver() error {
 	}
 
 	mux := http.NewServeMux()
-	SharedInformation.Hub = newHub()
+	Hub = newHub()
 
-	go SharedInformation.Hub.run()
+	go Hub.run()
 
-	mux.Handle("/", http.FileServer(http.Dir(SharedInformation.Configuration.Webserver.WebPath)))
+	mux.Handle("/", http.FileServer(http.Dir(Configuration.Webserver.WebPath)))
 
 	mux.HandleFunc("/echo", func(w http.ResponseWriter, r *http.Request) {
 		conn, err := upgrader.Upgrade(w, r, nil)
 
 		if err != nil {
-			SharedInformation.Logger.Error(err)
+			Logger.Error(err)
 			return
 		}
 
-		SharedInformation.Logger.Infof("Client connected from %s", r.RemoteAddr)
+		Logger.Infof("Client connected from %s", r.RemoteAddr)
 
-		client := &Client{hub: SharedInformation.Hub, conn: conn}
+		client := &Client{hub: Hub, conn: conn}
 
-		SharedInformation.Hub.register <- client
+		Hub.register <- client
 
 		go client.readPump()
 	})
@@ -183,7 +183,7 @@ func StartWebserver() error {
 			proxyReq, err := http.NewRequest(req.Method, req.Header["Tunnel"][0], req.Body)
 
 			if err != nil {
-				SharedInformation.Logger.Error(err)
+				Logger.Error(err)
 			}
 
 			proxyReq.Header = req.Header.Clone()
@@ -193,7 +193,7 @@ func StartWebserver() error {
 			resp, err := client.Do(proxyReq)
 
 			if err != nil {
-				SharedInformation.Logger.Error(err)
+				Logger.Error(err)
 			}
 
 			io.Copy(w, resp.Body)
@@ -217,7 +217,7 @@ func StartWebserver() error {
 	}*/
 
 	srv := &http.Server{
-		Addr:    SharedInformation.Configuration.Webserver.Listen,
+		Addr:    Configuration.Webserver.Listen,
 		Handler: mux,
 		/*		TLSConfig: cfg,
 				TLSNextProto: make(map[string]func(*http.Server, *tls.Conn, http.Handler), 0),*/
@@ -227,7 +227,7 @@ func StartWebserver() error {
 		return err
 	}
 
-	SharedInformation.Logger.Info("Serving")
+	Logger.Info("Serving")
 
 	err = srv.ListenAndServe()
 	//	err = srv.ListenAndServeTLS(housekeeper.Configuration.Webserver.Certificate, configuration.Webserver.CertificateKey)
