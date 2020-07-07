@@ -3,7 +3,7 @@ import SuperComponent from './SuperComponent';
 
 class ToggleSwitch extends SuperComponent {
     constructor(props) {
-      super(props,{
+      super(props, {
         room : SuperComponent.availablePropTypes.string,
         location : SuperComponent.availablePropTypes.string,
         command : SuperComponent.availablePropTypes.string,
@@ -16,11 +16,11 @@ class ToggleSwitch extends SuperComponent {
     }
   
     componentDidMount() {
-        this.props.registerMessageReceivedListener(data => {
-            if(data.topic === this.props.status) {
-              this.setState({ on : data.message === this.receiveOn});
-            }
-        });
+      this.props.registerMessageReceivedListener(data => {
+          if(data.topic === this.props.status) {
+            this.setState({ on : data.message === this.receiveOn });
+          }
+      });
     }
 
     toggle = () => {

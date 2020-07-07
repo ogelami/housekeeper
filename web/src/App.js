@@ -42,7 +42,6 @@ class App extends React.Component {
     this.webSocket.onmessage = (message) => {
       for (const listener of this.messageListeners) {
         listener.call(this, JSON.parse(message.data));
-//        console.log(listener);
       }
     }
   }
