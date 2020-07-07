@@ -6,7 +6,7 @@ import SuperComponent from './SuperComponent';
 class WeatherBar extends SuperComponent {
   constructor(props) {
     super(props, {
-      apiKey : re => re.match(/[a-zA-Z0-9]/),
+      apiKey : re => re.match(/[a-z0-9]/),
       latitude : SuperComponent.availablePropTypes.float,
       longitude : SuperComponent.availablePropTypes.float
     });

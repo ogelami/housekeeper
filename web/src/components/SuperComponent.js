@@ -13,7 +13,7 @@ class SuperComponent extends React.Component {
     }*/
 
     validatePropTypes() {
-        let isValid = false;
+        let isValid = true;
 
         for (const [keyName, validationFunction] of Object.entries(this.propValidation)) {
             if(!validationFunction(this.props[keyName]))

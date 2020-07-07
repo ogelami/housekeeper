@@ -6,7 +6,7 @@ import SuperComponent from './SuperComponent';
 
 class SLDisturbance extends SuperComponent {
   constructor(props) {
-    super(props, { apiKey : re => re.match(/[a-zA-Z0-9]/) });
+    super(props, { apiKey : re => re.match(/[a-z0-9]/) });
     this.state = { disturbanceData : [] };
   }
 
