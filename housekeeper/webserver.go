@@ -2,31 +2,32 @@ package housekeeper
 
 import (
 	"encoding/json"
-	"net/http"
-	"io"
 	"errors"
+	"io"
+	"net/http"
+
 	"github.com/gorilla/websocket"
 )
 
 type s_websocketResponse struct {
-	Topic string `json:"topic"`
+	Topic   string `json:"topic"`
 	Message string `json:"message"`
 }
 
 type Client struct {
-	hub *S_Hub
+	hub  *S_Hub
 	conn *websocket.Conn
 }
 
-func (c *Client) readPump() {
+func (client *Client) readPump() {
 	clientResponse := s_websocketResponse{}
 
 	for {
-		_, message, err := c.conn.ReadMessage()
+		_, message, err := client.conn.ReadMessage()
 
 		if err != nil {
 			SharedInformation.Logger.Error(err)
-			
+			SharedInformation.Hub.unregister <- client
 			break
 		}
 
@@ -34,7 +35,7 @@ func (c *Client) readPump() {
 
 		if err != nil {
 			SharedInformation.Logger.Error(err)
-			
+
 			break
 		}
 
@@ -70,6 +71,9 @@ func (h *S_Hub) run() {
 		select {
 		case client := <-h.register:
 			h.clients[client] = true
+		case client := <-h.unregister:
+			SharedInformation.Logger.Infof("Client disconnected from %s", client.conn.RemoteAddr().String())
+			delete(h.clients, client)
 		case message := <-h.broadcast:
 			packedResponse, err := json.Marshal(message)
 
@@ -79,15 +83,15 @@ func (h *S_Hub) run() {
 			}
 
 			for client := range h.clients {
-/*				SharedInformation.Logger.Error(packedResponse)
-				SharedInformation.Logger.Error(client)*/
+				/*				SharedInformation.Logger.Error(packedResponse)
+								SharedInformation.Logger.Error(client)*/
 				client.conn.WriteMessage(websocket.TextMessage, packedResponse)
 			}
 		}
 	}
 }
 
-var upgrader = websocket.Upgrader {
+var upgrader = websocket.Upgrader{
 	CheckOrigin: func(r *http.Request) bool {
 		return true
 	},
@@ -102,13 +106,13 @@ func validateConfiguration() error {
 		return errors.New("Webserver.Listen missing from configuration")
 	}
 
-/*	if configuration.Webserver.Certificate == "" {
-		return errors.New("Webserver.Certificate missing from configuration")
-	}
+	/*	if configuration.Webserver.Certificate == "" {
+			return errors.New("Webserver.Certificate missing from configuration")
+		}
 
-	if configuration.Webserver.CertificateKey == "" {
-		return errors.New("Webserver.CertificateKey missing from configuration")
-	}*/
+		if configuration.Webserver.CertificateKey == "" {
+			return errors.New("Webserver.CertificateKey missing from configuration")
+		}*/
 
 	return nil
 }
@@ -132,8 +136,8 @@ func listenForWebsocketIncoming() {
 				break
 			}
 
-//			SharedInformation.Logger.Info(clientResponse)
-//			SharedInformation.Logger.Info(clientResponse.Topic, clientResponse.Message)
+			//			SharedInformation.Logger.Info(clientResponse)
+			//			SharedInformation.Logger.Info(clientResponse.Topic, clientResponse.Message)
 
 			PublishMQTTMessage(clientResponse.Topic, clientResponse.Message)
 		}
@@ -166,57 +170,25 @@ func StartWebserver() error {
 
 		client := &Client{hub: SharedInformation.Hub, conn: conn}
 
-		go client.readPump()
-
 		SharedInformation.Hub.register <- client
+
+		go client.readPump()
 	})
 
 	mux.HandleFunc("/tun", func(w http.ResponseWriter, req *http.Request) {
-
-//		resp, err := http.Get(r.Header["Tunnel"])
-
-
-//		client := &http.Client{}
-
 		w.Header().Set("Access-Control-Allow-Origin", "*")
 		w.Header().Set("Access-Control-Allow-Headers", "*")
 
 		if len(req.Header["Tunnel"]) != 0 {
-
-//			SharedInformation.Logger.Info(req.Header["Tunnel"][0])
-
-//			SharedInformation.Logger.Info("a")
-
 			proxyReq, err := http.NewRequest(req.Method, req.Header["Tunnel"][0], req.Body)
-
-//			SharedInformation.Logger.Info("b")
 
 			if err != nil {
 				SharedInformation.Logger.Error(err)
 			}
 
-//			SharedInformation.Logger.Info(req.Header)
-
-//			SharedInformation.Logger.Info("CC")
-
 			proxyReq.Header = req.Header.Clone()
 
-//			SharedInformation.Logger.Info(req.Header.Clone())
-
-/*	    for header, values := range req.Header {
-	        for _, value := range values {
-							SharedInformation.Logger.Infof("%s:%s\n", header, value)
-
-	            proxyReq.Header.Add(header, value)
-	        }
-	    }*/
-
-//			SharedInformation.Logger.Info("c")
-
-
 			client := &http.Client{}
-
-//			SharedInformation.Logger.Info("d")
 
 			resp, err := client.Do(proxyReq)
 
@@ -224,29 +196,11 @@ func StartWebserver() error {
 				SharedInformation.Logger.Error(err)
 			}
 
-	//		SharedInformation.Logger.Info("e")
-
-//			SharedInformation.Logger.Info(resp.Body)
-//			w.Write(resp.Body)
-
 			io.Copy(w, resp.Body)
-
-			//SharedInformation.Logger.Warning("/tun request missing Tunnel path.")
 		}
-
-//		SharedInformation.Logger.Info(r.Header["Tunnel"][0])
-
-//		SharedInformation.Logger.Info(r)
-/*
-		r.URL, _ = url.Parse(sturl)
-
-		resp, _ := client.Do(r)
-
-		SharedInformation.Logger.Info(resp)
-		*/
 	})
 
-/*	cfg := &tls.Config{
+	/*	cfg := &tls.Config{
 		MinVersion: tls.VersionTLS12,
 		CurvePreferences: []tls.CurveID{
 			tls.CurveP521,
@@ -263,10 +217,10 @@ func StartWebserver() error {
 	}*/
 
 	srv := &http.Server{
-		Addr: SharedInformation.Configuration.Webserver.Listen,
+		Addr:    SharedInformation.Configuration.Webserver.Listen,
 		Handler: mux,
-/*		TLSConfig: cfg,
-		TLSNextProto: make(map[string]func(*http.Server, *tls.Conn, http.Handler), 0),*/
+		/*		TLSConfig: cfg,
+				TLSNextProto: make(map[string]func(*http.Server, *tls.Conn, http.Handler), 0),*/
 	}
 
 	if err != nil {
@@ -276,7 +230,7 @@ func StartWebserver() error {
 	SharedInformation.Logger.Info("Serving")
 
 	err = srv.ListenAndServe()
-//	err = srv.ListenAndServeTLS(housekeeper.Configuration.Webserver.Certificate, configuration.Webserver.CertificateKey)
+	//	err = srv.ListenAndServeTLS(housekeeper.Configuration.Webserver.Certificate, configuration.Webserver.CertificateKey)
 
 	return err
 }
