@@ -1,7 +1,7 @@
 import React from 'react';
-import axios from 'axios';
 import moment from 'moment';
 import SuperComponent from './SuperComponent';
+import tunnelWrap from '../TunnelWrap';
 
 class WeatherBar extends SuperComponent {
   constructor(props) {
@@ -40,11 +40,11 @@ class WeatherBar extends SuperComponent {
 
     this.setState({'weatherData':[]});
 
-    axios.get(`http://api.openweathermap.org/data/2.5/forecast?${urlParameters}`)
+    tunnelWrap({url: `http://api.openweathermap.org/data/2.5/forecast?${urlParameters}`})
       .then(res => {
         const weatherData = res.data;
 
-        this.setState({'weatherData': weatherData['list'].slice(0, 4).map(r => {
+        this.setState({'weatherData': weatherData['list'].slice(0, 9).map(r => {
           return {
             'time': moment(r.dt * 1000),
             'icon': `/image/openweather/${r.weather[0].icon}@2x.png`,
