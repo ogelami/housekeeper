@@ -1,9 +1,8 @@
-import Configuration from './Configuration';
 import axios from 'axios';
 
 const TunnelWrap = axiosOptions => {
     let newOptions = Object.assign({}, axiosOptions, {
-        url: '//' + (Configuration.webSocketServer || document.location.host) + '/tun',
+        url: '//' + (process.env.NODE_ENV === 'development' ? '127.0.0.1' : document.location.host) + '/tun',
         headers: {
             Tunnel: axiosOptions.url
         }

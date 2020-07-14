@@ -44,7 +44,7 @@ class WeatherBar extends SuperComponent {
       .then(res => {
         const weatherData = res.data;
 
-        this.setState({'weatherData': weatherData['list'].slice(0, 9).map(r => {
+        this.setState({'weatherData': weatherData['list'].slice(0, 6).map(r => {
           return {
             'time': moment(r.dt * 1000),
             'icon': `/image/openweather/${r.weather[0].icon}@2x.png`,

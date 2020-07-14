@@ -35,11 +35,11 @@ class ToggleSwitch extends SuperComponent {
             <div className="flip-card-inner">
               <div className="flip-card-front">
                 <span className={'mdi ' + this.icon[1]}/>
-                {this.props.room}, {this.props.location}
+                {this.props.room}<br/> {this.props.location}
               </div>
               <div className="flip-card-back">
                 <span className={'mdi ' + this.icon[0]}/>
-                {this.props.room}, {this.props.location}
+                {this.props.room}<br/> {this.props.location}
               </div>
             </div>
           </div>

@@ -11,7 +11,7 @@ import Configuration from './Configuration';
 import './App.css';
 
 class App extends React.Component {
-  webSocket = new WebSocket('ws://' + (Configuration.webSocketServer || document.location.host) + '/echo');
+  webSocket = new WebSocket('ws://' + (process.env.NODE_ENV === 'development' ? '127.0.0.1' : document.location.host) + '/echo');
   messageListeners = [];
 
   broadcastMessage = (topic, message) => {
@@ -28,16 +28,16 @@ class App extends React.Component {
   }
 
   componentDidMount() {
-    this.webSocket.onopen = () => {
+    this.webSocket.onopen = (q) => {
       console.log('connected');
     }
 
     this.webSocket.onerror = () => {
-      console.log('connected');
+      console.log('Connecting to the websocket server has failed, is the backend running?');
     }
 
     this.webSocket.onclose = () => {
-      console.log('erm looks like ws is closing.');
+      console.log('Websocket is now closing.');
     }
 
     this.webSocket.onmessage = (message) => {
