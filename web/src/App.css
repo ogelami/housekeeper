@@ -15,12 +15,17 @@ body
 main
 {
     background-color: #fff;
+    border-radius: 3px;
     position: relative;
 }
 
 #app {
   text-align: center;
   height: 100%;
+}
+
+.clock {
+  display: inline-block;
 }
 
 .flip-card {

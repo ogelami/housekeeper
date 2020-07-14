@@ -4,6 +4,7 @@ import Appliances from './components/Appliances';
 import Overlay from './components/Overlay';
 import WeatherBar from './components/WeatherBar';
 import SLDisturbance from './components/SLDisturbance';
+import Clock from './components/Clock';
 
 import Configuration from './Configuration';
 
@@ -51,6 +52,7 @@ class App extends React.Component {
       <div>
         <Overlay/>
         <main>
+          <nav><Clock /></nav>
           <div className="appliances">
             <Appliances broadcastMessage={this.broadcastMessage} registerMessageReceivedListener={this.registerMessageReceivedListener} configuration={Configuration.switchList}/>
           </div>
