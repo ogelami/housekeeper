@@ -6,9 +6,9 @@ import tunnelWrap from '../TunnelWrap';
 class WeatherBar extends SuperComponent {
   constructor(props) {
     super(props, {
-      apiKey : re => re.match(/[a-z0-9]/),
-      latitude : SuperComponent.availablePropTypes.float,
-      longitude : SuperComponent.availablePropTypes.float
+      /*apiKey : re => re.match(/[a-z0-9]/),*/
+      latitude : SuperComponent.availablePropTypes.float(),
+      longitude : SuperComponent.availablePropTypes.float()
     });
 
     this.state = { weatherData : [] };

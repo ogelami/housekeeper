@@ -10,10 +10,13 @@ class SuperComponent extends React.Component {
     validatePropTypes() {
         let isValid = true;
 
-        for (const [keyName, validationFunction] of Object.entries(this.propValidation)) {
+        for (const [keyName, validationEntry] of Object.entries(this.propValidation)) {
+
+            let [validationType, validationFunction] = validationEntry;
+
             if(!validationFunction(this.props[keyName]))
             {
-                console.warn(`${this.constructor.name}: ${keyName} did not comply with the validation ${validationFunction}`);
+                console.warn(`${this.constructor.name}: ${keyName} not of type ${validationType}`);
                 isValid = false;
             }
         }

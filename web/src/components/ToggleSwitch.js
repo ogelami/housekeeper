@@ -1,50 +1,43 @@
-import React from 'react';
-import SuperComponent from './SuperComponent';
+import React, { useState } from 'react';
+import PropertyValidator, { PropertyValidatorType } from './PropertyValidator';
 
-class ToggleSwitch extends SuperComponent {
-    constructor(props) {
-      super(props, {
-        room : SuperComponent.availablePropTypes.string,
-        location : SuperComponent.availablePropTypes.string,
-        command : SuperComponent.availablePropTypes.string,
-        status : SuperComponent.availablePropTypes.string
-      });
-      
-      this.validatePropTypes();
+export default function ToggleSwitch(props) {
+  PropertyValidator(props, {
+    room : PropertyValidatorType.string(),
+    location : PropertyValidatorType.string(),
+    command : PropertyValidatorType.string(),
+    status : PropertyValidatorType.string()
+  });
 
-      this.state = { on : false };
-    }
-  
-    componentDidMount() {
-      this.props.registerMessageReceivedListener(data => {
-          if(data.topic === this.props.status) {
-            this.setState({ on : data.message === this.receiveOn });
-          }
-      });
-    }
+  const [currentState, setState] = useState(false);
 
-    toggle = () => {
-      let newState = !this.state.on;
+  const toggleSwitch = () => props.broadcastMessage(props.command, !currentState ? props.sendOn : props.sendOff);
 
-      this.props.broadcastMessage(this.props.command, newState ? this.sendOn : this.sendOff);
-    }
-    
-    render() {
-        return (
-          <div onClick={this.toggle} className={'flip-card ' + (this.state.on ? 'on':'')}>
-            <div className="flip-card-inner">
-              <div className="flip-card-front">
-                <span className={'mdi ' + this.icon[1]}/>
-                {this.props.room}<br/> {this.props.location}
-              </div>
-              <div className="flip-card-back">
-                <span className={'mdi ' + this.icon[0]}/>
-                {this.props.room}<br/> {this.props.location}
-              </div>
-            </div>
-          </div>
-        );
+  props.registerMessageReceivedListener(data => {
+      if(data.topic === props.status) {
+        setState(data.message === props.receiveOn);
       }
-}
+  });
 
-export default ToggleSwitch;
+  props = {...{
+    icon : ['mdi-lightbulb-on-outline', 'mdi-lightbulb-outline'],
+    sendOn : 'ON',
+    sendOff : 'OFF',
+    receiveOn : 'ON'
+  }, ...props};
+
+  return (
+    <div onClick={toggleSwitch} className={'flip-card ' + (currentState ? 'on':'')}>
+      <div className="flip-card-inner">
+        <div className="flip-card-front">
+          <span className={'mdi ' + props.icon[1]}/>
+          {props.room}<br/> {props.location}
+        </div>
+        <div className="flip-card-back">
+          <span className={'mdi ' + props.icon[0]}/>
+          {props.room}<br/> {props.location}
+        </div>
+      </div>
+    </div>
+  );
+};
