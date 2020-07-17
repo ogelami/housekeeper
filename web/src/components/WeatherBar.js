@@ -1,76 +1,57 @@
-import React from 'react';
+import React, { useState } from 'react';
 import moment from 'moment';
-import SuperComponent from './SuperComponent';
 import tunnelWrap from '../TunnelWrap';
+import PropertyValidator, { PropertyValidatorType } from './PropertyValidator';
 
-class WeatherBar extends SuperComponent {
-  constructor(props) {
-    super(props, {
-      /*apiKey : re => re.match(/[a-z0-9]/),*/
-      latitude : SuperComponent.availablePropTypes.float(),
-      longitude : SuperComponent.availablePropTypes.float()
-    });
+export default function WeatherBar(props) {
+  const validProperties = PropertyValidator(props, {
+    /*apiKey : re => re.match(/[a-z0-9]/),*/
+    latitude : PropertyValidatorType.float(),
+    longitude : PropertyValidatorType.float(),
+  });
 
-    this.state = { weatherData : [] };
-  }
-  
-  componentDidMount() {
-    this.refreshInterval = setInterval(this.fetchWeather, this.props.refreshRate);
-    this.fetchWeather();
-  }
+  const urlParameters = new URLSearchParams({
+    'appid': props.apiKey,
+    'lat': props.latitude,
+    'lon': props.longitude,
+    'units': props.units
+  });
 
-  componentWillUnmount() {
-    clearInterval(this.refreshInterval);
-  }
+//  const [weatherData, setWeatherData] = useState([]);
+  const [weatherData, setWeatherData] = [[], () => {}];
+  console.log(123);
 
-  fetchWeather = () => {
-    if(!this.validatePropTypes())
-    {
+  function fetchWeather() {
+    if(!validProperties) {
       return;
     }
 
-    const urlParameters = new URLSearchParams({
-      'appid': this.props.apiKey,
-      'lat': this.props.latitude,
-      'lon': this.props.longitude,
-      'units': this.props.units
-    });
-
 //    console.log(`http://api.openweathermap.org/data/2.5/forecast?${urlParameters}`);
 
-    this.setState({'weatherData':[]});
-
-    tunnelWrap({url: `http://api.openweathermap.org/data/2.5/forecast?${urlParameters}`})
-      .then(res => {
-        const weatherData = res.data;
-
-        this.setState({'weatherData': weatherData['list'].slice(0, 6).map(r => {
-          return {
-            'time': moment(r.dt * 1000),
-            'icon': `/image/openweather/${r.weather[0].icon}@2x.png`,
-            'temperature': Math.round(r.main.temp),
-            'humidity': r.main.humidity,
-            'wind': Math.round(r.wind.speed)
-          };
-        })});
-      });
+    tunnelWrap({url: `http://api.openweathermap.org/data/2.5/forecast?${urlParameters}`}).then(res => {
+      setWeatherData(res.data['list'].slice(0, 6).map(r => {
+        return {
+          'time': moment(r.dt * 1000),
+          'icon': `/image/openweather/${r.weather[0].icon}@2x.png`,
+          'temperature': Math.round(r.main.temp),
+          'humidity': r.main.humidity,
+          'wind': Math.round(r.wind.speed)
+        };
+      }));
+    });
   }
 
-  render() {
-    return (
-      <div onClick={this.fetchWeather} className='weather-bar'>
-        {this.state.weatherData.map((item, iterator) =>
-          <div className='weather-block' key={iterator}>
-            <span className="time">{item.time.format('HH:mm')}</span>
-            <img alt={'image for weather condition ' + iterator} src={item.icon} />
-            <span className="temperature">{item.temperature} °C</span>
-            <span className="humidity">{item.humidity} %</span>
-            <span className="wind">{item.wind} ms</span>
-          </div>
-        )}
-      </div>
-    );
-  }
-}
-
-export default WeatherBar;
+  return (
+    <div onClick={fetchWeather} className='weather-bar'>
+      {weatherData.map((item, iterator) =>
+        <div className='weather-block' key={iterator}>
+          <span className="time">{item.time.format('HH:mm')}</span>
+          <img alt={'image for weather condition ' + iterator} src={item.icon} />
+          <span className="temperature">{item.temperature} °C</span>
+          <span className="humidity">{item.humidity} %</span>
+          <span className="wind">{item.wind} ms</span>
+        </div>
+      )}
+    </div>
+  );
+};
