@@ -1,27 +1,27 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import moment from 'moment';
 import tunnelWrap from '../TunnelWrap';
 import PropertyValidator, { PropertyValidatorType } from './PropertyValidator';
 
 export default function WeatherBar(props) {
-  const validProperties = PropertyValidator(props, {
+  const [validProperties] = useState(PropertyValidator(props, {
     /*apiKey : re => re.match(/[a-z0-9]/),*/
+    apiKey : PropertyValidatorType.regexp(/[a-z0-9]/),
     latitude : PropertyValidatorType.float(),
     longitude : PropertyValidatorType.float(),
-  });
+  }));
 
-  const urlParameters = new URLSearchParams({
+  const [urlParameters] = useState(new URLSearchParams({
     'appid': props.apiKey,
     'lat': props.latitude,
     'lon': props.longitude,
     'units': props.units
-  });
+  }));
 
-//  const [weatherData, setWeatherData] = useState([]);
-  const [weatherData, setWeatherData] = [[], () => {}];
-  console.log(123);
+  const [weatherData, setWeatherData] = useState([]);
+  const [refreshToggle, issueRefresh] = useState(true);
 
-  function fetchWeather() {
+  useEffect(() => {
     if(!validProperties) {
       return;
     }
@@ -39,10 +39,14 @@ export default function WeatherBar(props) {
         };
       }));
     });
+  }, [refreshToggle, validProperties, urlParameters]);
+
+  const refresh = () => {
+    issueRefresh(!refreshToggle);
   }
 
   return (
-    <div onClick={fetchWeather} className='weather-bar'>
+    <div onClick={refresh} className='weather-bar'>
       {weatherData.map((item, iterator) =>
         <div className='weather-block' key={iterator}>
           <span className="time">{item.time.format('HH:mm')}</span>
