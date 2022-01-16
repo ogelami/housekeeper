@@ -1,4 +1,4 @@
-package housekeeper
+package core
 
 import (
 	"encoding/json"
@@ -83,8 +83,6 @@ func (h *S_Hub) run() {
 			}
 
 			for client := range h.clients {
-				/*				Logger.Error(packedResponse)
-								Logger.Error(client)*/
 				client.conn.WriteMessage(websocket.TextMessage, packedResponse)
 			}
 		}
@@ -115,33 +113,6 @@ func validateConfiguration() error {
 		}*/
 
 	return nil
-}
-
-func listenForWebsocketIncoming() {
-	clientResponse := s_websocketResponse{}
-
-	for {
-		for client := range Hub.clients {
-			_, p, err := client.conn.ReadMessage()
-
-			if err != nil {
-				Logger.Error(err)
-				break
-			}
-
-			err = json.Unmarshal(p, &clientResponse)
-
-			if err != nil {
-				Logger.Error(err)
-				break
-			}
-
-			//			Logger.Info(clientResponse)
-			//			Logger.Info(clientResponse.Topic, clientResponse.Message)
-
-			PublishMQTTMessage(clientResponse.Topic, clientResponse.Message)
-		}
-	}
 }
 
 func StartWebserver() error {
@@ -227,7 +198,7 @@ func StartWebserver() error {
 		return err
 	}
 
-	Logger.Info("Serving")
+	Logger.Info("Serving webserver")
 
 	err = srv.ListenAndServe()
 	//	err = srv.ListenAndServeTLS(housekeeper.Configuration.Webserver.Certificate, configuration.Webserver.CertificateKey)

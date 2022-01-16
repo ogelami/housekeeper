@@ -1,4 +1,4 @@
-package housekeeper
+package core
 
 import (
 	"github.com/op/go-logging"
@@ -9,6 +9,7 @@ type configuration struct {
 		Broker   string `json:"broker"`
 		Username string `json:"username"`
 		Password string `json:"password"`
+		Listen   string `json:"listen"`
 	} `json:"mqtt"`
 	Webserver struct {
 		Protocol       string `json:"protocol"`
@@ -18,7 +19,6 @@ type configuration struct {
 		CertificateKey string `json:"certificate_key"`
 		//		LogRequests bool `json:"log_requests"`
 	} `json:"webserver"`
-	LogFile string `json:"log_file"`
 }
 
 //Logger used by housekeeper to print to console and log file.
