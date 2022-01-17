@@ -9,21 +9,27 @@ import (
 	"time"
 
 	housekeeper "github.com/ogelami/housekeeper/core"
-	"github.com/op/go-logging"
+	logging "github.com/op/go-logging"
 )
 
 var (
-	CONFIGURATION_PATH string
+	CONFIGURATION_PATH string = "housekeeper.conf"
 )
 
 func setupLogger() {
 	housekeeper.Logger = logging.MustGetLogger("logger")
-	logging.SetFormatter(logging.MustStringFormatter(`%{color}%{shortfunc} ▶ %{level:.4s} %{color:reset} %{message}`))
 
+	logging.SetFormatter(logging.MustStringFormatter(`%{color}%{shortfunc} ▶ %{level:.4s} %{color:reset} %{message}`))
 	logging.SetBackend(logging.NewLogBackend(os.Stdout, "", 0))
 }
 
 func loadConfiguration() error {
+	configurationPath, configurationPathSet := os.LookupEnv("HOUSEKEEPER_CONFIGURATION_PATH")
+
+	if configurationPathSet {
+		CONFIGURATION_PATH = configurationPath
+	}
+
 	configurationData, err := ioutil.ReadFile(CONFIGURATION_PATH)
 
 	if err != nil {
@@ -42,15 +48,8 @@ func loadConfiguration() error {
 }
 
 func main() {
-	environmentVariableConfigPath := os.Getenv("HOUSEKEEPER_CONFIGURATION_PATH")
-
-	if len(environmentVariableConfigPath) > 0 {
-		CONFIGURATION_PATH = environmentVariableConfigPath
-	}
-
-	err := loadConfiguration()
-
 	setupLogger()
+	err := loadConfiguration()
 
 	if err != nil {
 		housekeeper.Logger.Critical(err)
@@ -58,7 +57,7 @@ func main() {
 	}
 
 	sigc := make(chan os.Signal, 1)
-	signal.Notify(sigc, os.Interrupt, os.Kill, syscall.SIGTERM)
+	signal.Notify(sigc, os.Interrupt, syscall.SIGTERM)
 
 	go func(c chan os.Signal) {
 		sig := <-c

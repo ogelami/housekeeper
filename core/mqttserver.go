@@ -1,8 +1,6 @@
 package core
 
 import (
-	"log"
-
 	mqtt "github.com/mochi-co/mqtt/server"
 	"github.com/mochi-co/mqtt/server/events"
 	"github.com/mochi-co/mqtt/server/listeners"
@@ -23,21 +21,21 @@ func serve(server *mqtt.Server) error {
 	err := serverHandler.Serve()
 
 	if err != nil {
-		log.Fatal(err)
+		Logger.Fatal(err)
 	}
 
 	return nil
 }
 
 func StartMQTTserver() error {
-	serverHandler := mqtt.New()
+	serverHandler = mqtt.New()
 
 	tcp := listeners.NewTCP("t1", Configuration.MQTT.Listen)
 
 	err := serverHandler.AddListener(tcp, nil)
 
 	if err != nil {
-		log.Fatal(err)
+		Logger.Fatal(err)
 	}
 
 	serverHandler.Events.OnMessage = func(cl events.Client, pk events.Packet) (pkx events.Packet, err error) {
@@ -48,9 +46,9 @@ func StartMQTTserver() error {
 		return pk, nil
 	}
 
-	Logger.Infof("Serving MQTT server")
-
 	go serve(serverHandler)
+
+	Logger.Infof("Serving MQTT server, listening on %s", Configuration.MQTT.Listen)
 
 	return nil
 }
