@@ -1,21 +1,24 @@
 BINARY := housekeeper
 CONFIG_FILE ?= housekeeper.conf
 
-GOPATH := $(PWD)
-GOBIN := $(GOPATH)/bin
 SYSCONFDIR ?= $(PREFIX)/etc
-CONFIG_PATH := $(SYSCONFDIR)/$(CONFIG_FILE)
 SBINDIR := $(PREFIX)/usr/sbin
+
+export GOBIN=$(PWD)/bin
+export GOPATH=
 
 .PHONY: all build dep install clean
 
-all : dep build
+all: dep build
 
-build : main.go
-	GOPATH=$(GOPATH) GOBIN=$(GOBIN) go build -ldflags "-s -X main.CONFIGURATION_PATH=${CONFIG_PATH}" -o $(GOBIN)/$(BINARY)
+build: main.go
+	go build -ldflags "-s -X main.SYSCONF_PATH=${SYSCONFDIR}" -o $(GOBIN)/$(BINARY)
 
 dep:
-	GOPATH=$(GOPATH) GOBIN=$(GOBIN) go get -d
+	go mod vendor
+
+run: main.go
+	HOUSEKEEPER_CONFIGURATION_PATH=housekeeper.conf go run main.go
 
 install:
 	mkdir -p $(SYSCONFDIR) $(SBINDIR) $(LIBDIR)
@@ -24,6 +27,6 @@ install:
 	cp $(GOBIN)/*.so $(LIBDIR)
 
 clean:
+	rm -rf bin
+	rm -rf vendor
 	go clean
-	rm -rf $(GOBIN)/*
-

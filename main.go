@@ -14,6 +14,7 @@ import (
 
 var (
 	CONFIGURATION_PATH string = "housekeeper.conf"
+	SYSCONF_PATH       string = ""
 )
 
 func setupLogger() {
@@ -24,13 +25,16 @@ func setupLogger() {
 }
 
 func loadConfiguration() error {
+	var configurationData []byte
+	var err error
+
 	configurationPath, configurationPathSet := os.LookupEnv("HOUSEKEEPER_CONFIGURATION_PATH")
 
 	if configurationPathSet {
-		CONFIGURATION_PATH = configurationPath
+		configurationData, err = ioutil.ReadFile(configurationPath)
+	} else {
+		configurationData, err = ioutil.ReadFile(SYSCONF_PATH + "/" + CONFIGURATION_PATH)
 	}
-
-	configurationData, err := ioutil.ReadFile(CONFIGURATION_PATH)
 
 	if err != nil {
 		housekeeper.Logger.Critical(err)

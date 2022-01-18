@@ -1,5 +1,4 @@
-config.json
 .DS_Store
 *.log
-/src/
-/bin/
+/bin
+/vendor
