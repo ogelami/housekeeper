@@ -26,7 +26,14 @@ func (client *Client) readPump() {
 		_, message, err := client.conn.ReadMessage()
 
 		if err != nil {
-			Logger.Error(err)
+			closeError := err.(*websocket.CloseError)
+
+			if closeError.Code == websocket.CloseGoingAway {
+				Logger.Infof("Client disconnected from %s reason %s", client.conn.RemoteAddr().String(), closeError)
+			} else {
+				Logger.Errorf("Client disconnected from %s reason %s", client.conn.RemoteAddr().String(), closeError)
+			}
+
 			Hub.unregister <- client
 			break
 		}
@@ -72,7 +79,6 @@ func (h *S_Hub) run() {
 		case client := <-h.register:
 			h.clients[client] = true
 		case client := <-h.unregister:
-			Logger.Infof("Client disconnected from %s", client.conn.RemoteAddr().String())
 			delete(h.clients, client)
 		case message := <-h.broadcast:
 			packedResponse, err := json.Marshal(message)

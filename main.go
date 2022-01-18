@@ -32,8 +32,10 @@ func loadConfiguration() error {
 
 	if configurationPathSet {
 		configurationData, err = ioutil.ReadFile(configurationPath)
-	} else {
+	} else if len(SYSCONF_PATH) > 0 {
 		configurationData, err = ioutil.ReadFile(SYSCONF_PATH + "/" + CONFIGURATION_PATH)
+	} else {
+		configurationData, err = ioutil.ReadFile(CONFIGURATION_PATH)
 	}
 
 	if err != nil {
