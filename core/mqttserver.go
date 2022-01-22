@@ -17,7 +17,9 @@ func PublishMQTTMessage(topic string, payload string) {
 	serverHandler.Publish(topic, []byte(payload), false)
 }
 
-func serve(server *mqtt.Server) error {
+func serve() error {
+	Logger.Info(serverHandler)
+
 	err := serverHandler.Serve()
 
 	if err != nil {
@@ -31,7 +33,7 @@ func StartMQTTserver() error {
 	serverHandler = mqtt.New()
 
 	tcp := listeners.NewTCP("t1", Configuration.MQTT.Listen)
-
+	Logger.Info(tcp)
 	err := serverHandler.AddListener(tcp, nil)
 
 	if err != nil {
@@ -46,7 +48,7 @@ func StartMQTTserver() error {
 		return pk, nil
 	}
 
-	go serve(serverHandler)
+	go serve()
 
 	Logger.Infof("Serving MQTT server, listening on %s", Configuration.MQTT.Listen)
 
