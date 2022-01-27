@@ -145,6 +145,13 @@ func StartWebserver() error {
 
 		Logger.Infof("Client connected from %s", r.RemoteAddr)
 
+		for key, element := range DeviceMap {
+			m, _ := json.Marshal(element)
+
+			conn.WriteMessage(websocket.TextMessage, m)
+			Logger.Info(key)
+		}
+
 		client := &Client{hub: Hub, conn: conn}
 
 		Hub.register <- client
