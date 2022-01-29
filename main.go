@@ -8,7 +8,7 @@ import (
 	"syscall"
 	"time"
 
-	housekeeper "github.com/ogelami/housekeeper/core"
+	housekeeper "github.com/ogelami/housekeeper/internal"
 	logging "github.com/op/go-logging"
 )
 

@@ -1,4 +1,4 @@
-package core
+package internal
 
 import (
 	mqtt "github.com/mochi-co/mqtt/server"
