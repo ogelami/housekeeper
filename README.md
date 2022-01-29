@@ -1,24 +1,19 @@
-# Specifying configuration path
-There are two ways the path to configuration can be specified
-
-## During building
+### Cloning project
 ```
-SYSCONFDIR=$(pwd) make all
-```
-
-## During runtime
-```
-HOUSEKEEPER_CONFIGURATION_PATH=$(pwd) bin/housekeeper
-```
-
-# Prerequisite
-* A MQTT server running
-
-# Building
-
-## housekeeper and all plugins
-```
+# clone housekeeper
 git clone https://github.com/ogelami/housekeeper
-cd housekeeper
+
+# clone housekeeper including react web-front
+git clone --recurse-submodules -j8 https://github.com/ogelami/housekeeper
+```
+
+### Building
+```
+# fetch and build housekeeper
 make all
+
+# building the web-front
+cd web
+yarn
+yarn build
 ```
