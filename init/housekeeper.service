@@ -1,0 +1,16 @@
+[Unit]
+Description=Housekeeper
+Documentation=https://github.com/ogelami/housekeeper
+After=network.target
+
+[Service]
+Type=simple
+Restart=always
+StandardError=syslog
+PIDFile=/var/run/housekeeper.pid
+ExecStart=/var/housekeeper/bin/housekeeper
+ExecReload=/bin/kill -s HUP $MAINPID
+ExecStop=/bin/kill -s QUIT $MAINPID
+
+[Install]
+WantedBy=multi-user.target
