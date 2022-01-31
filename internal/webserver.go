@@ -152,6 +152,13 @@ func StartWebserver() error {
 			Logger.Info(key)
 		}
 
+		for key, element := range LastPowerStatusMap {
+			m, _ := json.Marshal(element)
+
+			conn.WriteMessage(websocket.TextMessage, m)
+			Logger.Info(key)
+		}
+
 		client := &Client{hub: Hub, conn: conn}
 
 		Hub.register <- client

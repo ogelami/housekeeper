@@ -2,6 +2,8 @@ package internal
 
 import (
 	"encoding/json"
+	"fmt"
+	"regexp"
 	"strings"
 
 	mqtt "github.com/mochi-co/mqtt/server"
@@ -21,8 +23,6 @@ func PublishMQTTMessage(topic string, payload string) {
 }
 
 func serve() error {
-	Logger.Info(serverHandler)
-
 	err := serverHandler.Serve()
 
 	if err != nil {
@@ -44,6 +44,7 @@ type DiscoveryMessage struct {
 }
 
 var DeviceMap = make(map[string]S_MQTTResponse)
+var LastPowerStatusMap = make(map[string]S_MQTTResponse)
 
 func StartMQTTserver() error {
 	serverHandler = mqtt.New()
@@ -75,9 +76,18 @@ func StartMQTTserver() error {
 			DeviceMap[k.Topic] = *serverResponse
 
 			Logger.Info(k)
-		} else if strings.HasSuffix(packet.TopicName, "/LWT") {
-			delete(DeviceMap, "") // <--
+		} else if strings.HasPrefix(packet.TopicName, "stat") && strings.HasSuffix(packet.TopicName, "/POWER") {
+			var rgx = regexp.MustCompile(`\/(.+?)\/`)
+			rs := rgx.FindStringSubmatch(packet.TopicName)
+
+			if rs != nil {
+				fmt.Println(rs[1])
+				LastPowerStatusMap[rs[1]] = *serverResponse
+			}
 		}
+		/*else if strings.HasSuffix(packet.TopicName, "/LWT") {
+			delete(DeviceMap, "") // <--
+		}*/
 
 		Hub.broadcast <- serverResponse
 
