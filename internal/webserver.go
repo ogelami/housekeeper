@@ -26,13 +26,18 @@ func (client *Client) readPump() {
 		_, message, err := client.conn.ReadMessage()
 
 		if err != nil {
-			closeError := err.(*websocket.CloseError)
-
-			if closeError.Code == websocket.CloseGoingAway {
-				Logger.Infof("Client disconnected from %s reason %s", client.conn.RemoteAddr().String(), closeError)
-			} else {
-				Logger.Errorf("Client disconnected from %s reason %s", client.conn.RemoteAddr().String(), closeError)
-			}
+			switch err.(type) {
+			case *websocket.CloseError:
+				closeError := err.(*websocket.CloseError)
+				if closeError.Code == websocket.CloseGoingAway {
+					Logger.Infof("Client disconnected from %s reason %s", client.conn.RemoteAddr().String(), closeError)
+				} else {
+					Logger.Errorf("Client disconnected from %s reason %s", client.conn.RemoteAddr().String(), closeError)
+				}
+			//case *OpError:
+			default:
+				Logger.Error(err)
+		   }
 
 			Hub.unregister <- client
 			break
