@@ -6,11 +6,10 @@ After=network.target
 [Service]
 Type=simple
 Restart=always
-StandardError=syslog
 PIDFile=/var/run/housekeeper.pid
 ExecStart=/var/housekeeper/bin/housekeeper
 ExecReload=/bin/kill -s HUP $MAINPID
-ExecStop=/bin/kill -s QUIT $MAINPID
+ExecStop=/bin/kill -s TERM $MAINPID
 
 [Install]
 WantedBy=multi-user.target

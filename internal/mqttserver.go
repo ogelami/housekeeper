@@ -2,7 +2,7 @@ package internal
 
 import (
 	"encoding/json"
-	"fmt"
+	"errors"
 	"regexp"
 	"strings"
 
@@ -46,20 +46,28 @@ type DiscoveryMessage struct {
 var DeviceMap = make(map[string]S_MQTTResponse)
 var LastPowerStatusMap = make(map[string]S_MQTTResponse)
 
+func extractIdentifier(topic string) (string, error) {
+
+	var rgx = regexp.MustCompile(`\/(.+?)\/`)
+	rs := rgx.FindStringSubmatch(topic)
+
+	if rs != nil {
+		return rs[1], nil
+	}
+
+	return "", errors.New("identifier could not be found")
+}
+
 func StartMQTTserver() error {
 	serverHandler = mqtt.New()
 
 	tcp := listeners.NewTCP("t1", Configuration.MQTT.Listen)
-	Logger.Info(tcp)
+
 	err := serverHandler.AddListener(tcp, nil)
 
 	if err != nil {
 		Logger.Fatal(err)
 	}
-
-	/*serverHandler.Events.OnConnect = func(client events.Client, packet events.Packet) {
-		Logger.Info("C con")
-	}*/
 
 	serverHandler.Events.OnMessage = func(client events.Client, packet events.Packet) (pkx events.Packet, err error) {
 		serverResponse := &S_MQTTResponse{Topic: packet.TopicName, Message: string(packet.Payload)}
@@ -75,19 +83,26 @@ func StartMQTTserver() error {
 
 			DeviceMap[k.Topic] = *serverResponse
 
-			Logger.Info(k)
+			Logger.Infof("Discovery %+v", k)
 		} else if strings.HasPrefix(packet.TopicName, "stat") && strings.HasSuffix(packet.TopicName, "/POWER") {
-			var rgx = regexp.MustCompile(`\/(.+?)\/`)
-			rs := rgx.FindStringSubmatch(packet.TopicName)
+			identifier, err := extractIdentifier(packet.TopicName)
 
-			if rs != nil {
-				fmt.Println(rs[1])
-				LastPowerStatusMap[rs[1]] = *serverResponse
+			if err != nil {
+				Logger.Warning(err)
+				return packet, err
 			}
+
+			LastPowerStatusMap[identifier] = *serverResponse
+		} else if strings.HasPrefix(packet.TopicName, "tele") && strings.HasSuffix(packet.TopicName, "/LWT") {
+			identifier, err := extractIdentifier(packet.TopicName)
+
+			if err != nil {
+				Logger.Warning(err)
+				return packet, err
+			}
+
+			Logger.Infof("LWT : %s - %+v", identifier, string(packet.Payload))
 		}
-		/*else if strings.HasSuffix(packet.TopicName, "/LWT") {
-			delete(DeviceMap, "") // <--
-		}*/
 
 		Hub.broadcast <- serverResponse
 

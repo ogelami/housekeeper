@@ -26,13 +26,12 @@ func (client *Client) readPump() {
 		_, message, err := client.conn.ReadMessage()
 
 		if err != nil {
-			switch err.(type) {
+			switch err := err.(type) {
 			case *websocket.CloseError:
-				closeError := err.(*websocket.CloseError)
-				if closeError.Code == websocket.CloseGoingAway {
-					Logger.Infof("Client disconnected from %s reason %s", client.conn.RemoteAddr().String(), closeError)
+				if err.Code == websocket.CloseGoingAway {
+					Logger.Infof("Client disconnected from %s reason %s", client.conn.RemoteAddr().String(), err)
 				} else {
-					Logger.Errorf("Client disconnected from %s reason %s", client.conn.RemoteAddr().String(), closeError)
+					Logger.Errorf("Client disconnected from %s reason %s", client.conn.RemoteAddr().String(), err)
 				}
 			//case *OpError:
 			default:
@@ -150,18 +149,16 @@ func StartWebserver() error {
 
 		Logger.Infof("Client connected from %s", r.RemoteAddr)
 
-		for key, element := range DeviceMap {
+		for _, element := range DeviceMap {
 			m, _ := json.Marshal(element)
 
 			conn.WriteMessage(websocket.TextMessage, m)
-			Logger.Info(key)
 		}
 
-		for key, element := range LastPowerStatusMap {
+		for _, element := range LastPowerStatusMap {
 			m, _ := json.Marshal(element)
 
 			conn.WriteMessage(websocket.TextMessage, m)
-			Logger.Info(key)
 		}
 
 		client := &Client{hub: Hub, conn: conn}
